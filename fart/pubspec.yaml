@@ -1,0 +1,9 @@
+name: fart
+description: ML-like functonal language frontend for Dart Kernel IR.
+version: 0.0.0
+environment:
+  sdk: ">=2.0.0-dev <3.0.0"
+dependencies:
+  kernel: ^0.3.6
+  source_span: ^1.0.0
+  string_scanner: ^1.0.0
