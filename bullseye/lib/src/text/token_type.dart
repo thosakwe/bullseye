@@ -1,21 +1,96 @@
 enum TokenType {
   // Symbols
+  arroba,
+  arrow,
+  colon,
+  comma,
+  comment,
+  dot,
   equals,
+  notEquals,
+  lBracket,
+  rBracket,
+  lCurly,
+  rCurly,
+  lParen,
+  rParen,
+  semi,
+  singleQuote,
+  doubleQuote,
 
   // Operators
-  caret,
+  pipeline,
+  doubleDot,
+  tripleDot,
+
+  // Nullability
+  nonNull,
+  nonNullAs,
+  nonNullDot,
+  nullable,
+  nullableAssign,
+  nullableDot,
+  nullCoalescing,
+
+  // Arithmetic
+  exponent,
+  times,
+  div,
+  mod,
+  plus,
+  minus,
+  shiftLeft,
+  shiftRight,
+
+  // Boolean
+  booleanAnd,
+  booleanOr,
+  lessThan,
+  lessThanOrEqual,
+  greaterThan,
+  greaterThanOrEqual,
+
+  // Bitwise
+  bitwiseNegate,
+  bitwiseAnd,
+  bitwiseOr,
+  bitwiseXor,
 
   // Keywords
+  abstract$,
+  as$,
+  await$,
+  async$,
+  begin,
+  class$,
+  else$,
+  end,
   fun,
+  if$,
   in$,
+  is$,
+  isNot,
   let,
+  proto,
   rec,
+  val,
+  step,
 
   // Values
-  char,
   hex,
   int$,
+  intScientific,
   float,
-  string,
+  floatScientific,
+
+  // String parts
+  textStringPart,
+  escapeStringPart,
+  hexStringPart,
+  unicodeStringPart,
+  stringInterpStart,
+  escapedQuotePart,
+
+  // ID
   id
 }

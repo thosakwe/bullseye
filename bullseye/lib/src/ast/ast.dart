@@ -1,7 +1,2 @@
-import 'package:analyzer/analyzer.dart';
-
+export 'declaration.dart';
 export 'node.dart';
-
-r() {
-  var 
-}
