@@ -9,11 +9,12 @@ type Chicken = class
     val mutableName: String
 
     let cluck repeat =
-        let cluck_help n =
+        let rec cluck_help n =
             if n == repeat
                 null
             else begin
                 print mutableName
+                cluck_help n + 1
             end
         in
         

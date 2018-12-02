@@ -1,3 +1,18 @@
-type todo = class
-    let 
+type Todo = class
+    val text: String
+    val completed: bool = false
 end
+
+let main () =
+    let cleanYourRoom = Todo("Clean your room!") in
+    let dupe = Todo("Clean your room!") in
+    
+    -- Bullseye classes are data classes.
+    -- Check out this comparison:
+
+    if cleanYourRoom == dupe
+        print "Same!"
+    else begin
+        print "This is impossible!"
+        exit 1
+    end
