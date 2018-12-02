@@ -1,4 +1,4 @@
-import 'package:fart/fart.dart';
+import 'package:bullseye/bullseye.dart';
 import 'package:source_span/source_span.dart';
 
 abstract class Node {

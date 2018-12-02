@@ -1,0 +1,31 @@
+type MyUnion = String | int
+
+type Struct = {foo: String; bar: int}
+
+type TupleOfTwoInts = int * int
+
+type Chicken = class
+    val legCount: int
+    val mutableName: String
+
+    let cluck repeat =
+        let cluck_help n =
+            if n == repeat
+                null
+            else begin
+                print mutableName
+            end
+        in
+        
+        cluck_help 0
+end
+
+type IWheels = interface
+    proto rev: () -> void
+end
+
+type Car = class implements IWheels
+    @override
+    let rev () =
+        print "Vroom!"
+end
