@@ -21,7 +21,7 @@ type Chicken = class
         cluck_help 0
 end
 
-type IWheels = interface
+type IWheels = abstract class
     proto rev: () -> void
 end
 
