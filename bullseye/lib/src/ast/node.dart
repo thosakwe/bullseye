@@ -7,3 +7,10 @@ abstract class Node {
 
   Node(this.comments, this.span);
 }
+
+class AnnotatedNode extends Node {
+  final List<Annotation> annotations;
+
+  AnnotatedNode(this.annotations, List<Token> comments, FileSpan span)
+      : super(comments, span);
+}

@@ -19,6 +19,22 @@ abstract class NumberLiteral<T extends num> extends Literal<T> {
       : super(comments, span);
 }
 
+class NullLiteral extends Literal<Null> {
+  NullLiteral(List<Token> comments, FileSpan span) : super(comments, span);
+
+  @override
+  bool get hasConstantValue => true;
+}
+
+class BoolLiteral extends Literal<bool> {
+  final Token token;
+
+  BoolLiteral(List<Token> comments, FileSpan span, this.token)
+      : super(comments, span) {
+    constantValue = token.span.text == 'true';
+  }
+}
+
 class BinaryLiteral extends NumberLiteral<int> {
   final Token token;
 

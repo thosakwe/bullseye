@@ -8,6 +8,13 @@ abstract class Expression extends Node {
   Expression get innermost => this;
 }
 
+class Annotation extends Node {
+  final Expression value;
+
+  Annotation(List<Token> comments, FileSpan span, this.value)
+      : super(comments, span);
+}
+
 class Identifier extends Expression {
   final Token token;
 
