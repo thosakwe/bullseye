@@ -1,0 +1,24 @@
+import 'dart:io'
+import 'package:angel_framework/angel_framework.dart'
+import 'package:angel_framework/http.dart'
+import 'package:angel_static/angel_static.dart'
+import 'package:file/file.dart'
+import 'package:file/local.dart'
+
+let async main() =
+    let app = Angel() in
+    let http = AngelHttp app in
+    let lfs = LocalFileSystem() in
+    begin
+        await app.configure (configureServer lfs);
+        await http.startServer InternetAddress.loopbackIpv4 3000;
+        print "Listening at ${http.uri}"
+    end
+
+let configureServer fs =
+    async fun (app: Angel) =
+        begin
+            let vDir = VirtualDirectory app fs :source=fs.dir('web') in
+            app.fallback vDir.handleRequest;
+            app.fallback fun (req, res) -> throw AngelHttpException.notFound :message='404 Not Found';
+        end
