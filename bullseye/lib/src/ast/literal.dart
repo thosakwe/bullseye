@@ -74,3 +74,64 @@ class DoubleScientificLiteral extends NumberLiteral<double> {
             comments,
             span);
 }
+
+class StringLiteral extends Literal<String> {
+  final List<StringPart> parts;
+  StringLiteral(List<Token> comments, FileSpan span, this.parts)
+      : super(comments, span);
+}
+
+abstract class StringPart {
+  final FileSpan span;
+
+  StringPart(this.span);
+}
+
+class TextStringPart extends StringPart {
+  TextStringPart(FileSpan span) : super(span);
+
+  String get text => span.text;
+}
+
+class EscapeStringPart extends TextStringPart {
+  final Token token;
+
+  EscapeStringPart(this.token) : super(token.span);
+
+  @override
+  String get text {
+    switch (token.match[1]) {
+      case 'b':
+        return '\b';
+      case 'f':
+        return '\f';
+      case 'n':
+        return '\n';
+      case 'r':
+        return '\r';
+      case 't':
+        return '\t';
+      case '\\':
+        return '\\';
+      default:
+        return token.match[1];
+    }
+  }
+}
+
+class HexStringPart extends TextStringPart {
+  final Token token;
+
+  HexStringPart(this.token) : super(token.span);
+
+  @override
+  String get text {
+    return new String.fromCharCode(int.parse(token.match[1], radix: 16));
+  }
+}
+
+class InterpolationStringPart extends StringPart {
+  final Expression expression;
+
+  InterpolationStringPart(this.expression) : super(expression.span);
+}
