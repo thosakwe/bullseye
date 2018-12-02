@@ -129,6 +129,7 @@ class NormalModeScanner extends SubScannerBase {
     'class': TokenType.class$,
     'else': TokenType.else$,
     'end': TokenType.end,
+    'export': TokenType.export,
     'extends': TokenType.extends$,
     'fun': TokenType.fun,
     'hide': TokenType.hide,

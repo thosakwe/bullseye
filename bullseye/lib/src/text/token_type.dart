@@ -65,6 +65,7 @@ enum TokenType {
   class$,
   else$,
   end,
+  export,
   extends$,
   fun,
   hide,
