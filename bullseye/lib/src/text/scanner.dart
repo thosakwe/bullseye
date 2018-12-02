@@ -148,11 +148,16 @@ class NormalModeScanner extends SubScannerBase {
     'type': TokenType.type,
     'val': TokenType.val,
     'step': TokenType.step,
+    'false': TokenType.false$,
+    'true': TokenType.true$,
+    'null': TokenType.null$,
     new RegExp(r'0x([A-Fa-f0-9]+)'): TokenType.hex,
+    new RegExp(r'0o([0-7]+)'): TokenType.octal,
+    new RegExp(r'0b([0-1]+)'): TokenType.binary,
     new RegExp(r'[0-9]+'): TokenType.int$,
     new RegExp(r'([0-9]+)[Ee](-?[0-9]+)'): TokenType.intScientific,
-    new RegExp(r'[0-9]+\.[0-9]+'): TokenType.float,
-    new RegExp(r'([0-9]+\.[0-9]+)[Ee](-?[0-9]+)'): TokenType.floatScientific,
+    new RegExp(r'[0-9]+\.[0-9]+'): TokenType.double$,
+    new RegExp(r'([0-9]+\.[0-9]+)[Ee](-?[0-9]+)'): TokenType.doubleScientific,
     new RegExp(r'([A-Za-z_]|\$)([A-Za-z0-9_]|\$)*'): TokenType.id,
   };
 
@@ -190,7 +195,9 @@ class StringModeScanner extends SubScannerBase {
   @override
   Map<Pattern, TokenType> patterns = {
     new RegExp(r'\\(b|f|n|r|t|\\)'): TokenType.escapeStringPart,
-    new RegExp(r'\\x([A-Fa-f0-9][A-Fa-f0-9])'): TokenType.hexStringPart
+    new RegExp(r'\\x([A-Fa-f0-9][A-Fa-f0-9])'): TokenType.hexStringPart,
+    new RegExp(r'\$([A-Za-z_]|\$)([A-Za-z0-9_]|\$)*'):
+        TokenType.stringSingleInterpPart,
   };
 
   StringModeScanner(this.scanner, this.delimiter, this.delimiterString) {

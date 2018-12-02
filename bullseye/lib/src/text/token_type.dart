@@ -86,11 +86,16 @@ enum TokenType {
   val,
 
   // Values
+  false$,
+  true$,
+  null$,
   hex,
+  octal,
+  binary,
   int$,
   intScientific,
-  float,
-  floatScientific,
+  double$,
+  doubleScientific,
 
   // String parts
   textStringPart,
@@ -98,6 +103,7 @@ enum TokenType {
   hexStringPart,
   unicodeStringPart,
   stringInterpStart,
+  stringSingleInterpPart,
   escapedQuotePart,
 
   // ID
