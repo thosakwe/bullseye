@@ -37,7 +37,7 @@ class ScannerIterator extends BidirectionalIterator<Token> {
 
   @override
   bool moveNext() {
-    if (_index < scanner.tokens.length - 1) {
+    if (done) {
       return false;
     } else {
       _index++;

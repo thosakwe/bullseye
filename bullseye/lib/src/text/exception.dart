@@ -8,7 +8,7 @@ class BullseyeException implements Exception {
   BullseyeException(this.severity, this.span, this.message);
 
   @override
-  String toString() {
+  String toString({bool showSpan = false, color}) {
     var b = new StringBuffer();
 
     switch (severity) {
@@ -27,9 +27,14 @@ class BullseyeException implements Exception {
     }
 
     b.write(': ');
-    b.write(span.start.toolString);
+    b.write(span?.start?.toolString ?? '<unknown span>');
     b.write(': ');
     b.write(message);
+
+    if (showSpan && span != null) {
+      b..writeln()..writeln(span.highlight(color: color));
+    }
+    
     return b.toString();
   }
 }

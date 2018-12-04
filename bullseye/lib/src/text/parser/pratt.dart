@@ -32,8 +32,8 @@ abstract class PrattParser<T> {
 
   T parse([int precedence = 0]) {
     var next = parser.peek();
-    if (_prefixParselets.containsKey(next) && parser.moveNext()) {
-      var left = _prefixParselets[next](parser, parser.current);
+    if (_prefixParselets.containsKey(next.type) && parser.moveNext()) {
+      var left = _prefixParselets[next.type](parser, next);
 
       while (left != null &&
           precedence < _nextPrecedence &&

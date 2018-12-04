@@ -68,7 +68,8 @@ class IntScientificLiteral extends NumberLiteral<int> {
 
   IntScientificLiteral(this.token, List<Token> comments, FileSpan span)
       : super(
-            int.parse(token.match[1]) * math.pow(10, int.parse(token.match[2])),
+            int.parse(token.match[1]) *
+                math.pow(10, int.parse(token.match[2])).toInt(),
             comments,
             span);
 }

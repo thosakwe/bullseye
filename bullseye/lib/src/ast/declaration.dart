@@ -2,7 +2,11 @@ import 'package:bullseye/bullseye.dart';
 import 'package:source_span/source_span.dart';
 
 class CompilationUnit extends Node {
-  CompilationUnit(List<Token> comments, FileSpan span) : super(comments, span);
+  final List<TopLevelDeclaration> topLevelDeclarations;
+
+  CompilationUnit(
+      List<Token> comments, FileSpan span, this.topLevelDeclarations)
+      : super(comments, span);
 }
 
 abstract class TopLevelDeclaration extends AnnotatedNode {

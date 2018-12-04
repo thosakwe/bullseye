@@ -10,8 +10,8 @@ class FunctionParser {
     if (parser.peek()?.type == TokenType.let && parser.moveNext()) {
       // TODO: Annotations  + comments
       var let = parser.current;
-      var annotations = [];
-      var comments = [];
+      var annotations = <Annotation>[];
+      var comments = <Token>[];
 
       if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
         var id = new Identifier([], parser.current);
@@ -22,7 +22,7 @@ class FunctionParser {
         if (parameterList != null) {
           if (parser.peek()?.type == TokenType.equals && parser.moveNext()) {
             var equals = parser.current;
-            var block = parseBlock();
+            var block = parseBlock(equals.span);
 
             if (block != null) {
               return new FunctionDeclaration(annotations, comments,
@@ -64,7 +64,7 @@ class FunctionParser {
     }
   }
 
-  Block parseBlock() {
+  Block parseBlock(FileSpan previousSpan) {
     var bindings = <LetBinding>[];
     var binding = parseLetBinding();
     var span = binding?.span, lastSpan = span;
@@ -82,9 +82,10 @@ class FunctionParser {
     } else {
       parser.exceptions.add(new BullseyeException(
           BullseyeExceptionSeverity.error,
-          lastSpan,
+          lastSpan ?? previousSpan,
           "Missing expression at end of block."));
-      return new Block([], span, bindings, new NullLiteral([], span));
+      return new Block(
+          [], span ?? previousSpan, bindings, new NullLiteral([], span));
     }
   }
 
