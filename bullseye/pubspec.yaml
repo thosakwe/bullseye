@@ -5,9 +5,14 @@ environment:
   sdk: ">=2.0.0-dev <3.0.0"
 dependencies:
   #analyzer: ^0.33.0
+  args: ^1.0.0
   cli_repl: ^0.2.0
   kernel: 0.3.6
   source_span: ^1.0.0
   string_scanner: ^1.0.0
+  symbol_table: ^2.0.0
 dev_dependencies:
   pedantic: ^1.0.0
+executables:
+  blsc: blsc
+  bullseye: bullseye

@@ -10,6 +10,8 @@ class ScannerIterator extends BidirectionalIterator<Token> {
 
   ScannerIterator(this.scanner);
 
+  void reset() => _index = -1;
+
   @override
   Token get current {
     if (_index < 0 || _index >= scanner.tokens.length - 1) {
