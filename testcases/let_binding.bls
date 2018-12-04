@@ -1,0 +1,3 @@
+let main() =
+    let four = 4.0 in
+    four

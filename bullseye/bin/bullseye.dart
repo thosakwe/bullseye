@@ -19,7 +19,9 @@ main(List<String> args) async {
     }
 
     if (!hasFatal) {
-      var compiler = new BullseyeKernelCompiler(unit)..compile();
+      var compiler = new BullseyeKernelCompiler(unit, parser);
+      await compiler.initialize();
+      compiler.compile();
       var hasFatal = compiler.exceptions
           .any((e) => e.severity == BullseyeExceptionSeverity.error);
 

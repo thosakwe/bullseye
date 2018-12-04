@@ -28,7 +28,8 @@ main(List<String> args) async {
     Component outputComponent;
 
     if (!argResults.wasParsed('out') && argResults['format'] == 'binary') {
-      throw 'If --out is not defined, blsc can only print text to stdout.';
+      throw new ArgParserException(
+          'If --out is not defined, blsc can only print binary data to stdout.');
     }
 
     if (argResults['help'] as bool) {
@@ -65,7 +66,9 @@ main(List<String> args) async {
       }
 
       if (!hasFatal) {
-        var compiler = new BullseyeKernelCompiler(unit)..compile();
+        var compiler = new BullseyeKernelCompiler(unit, parser);
+        await compiler.initialize();
+        compiler.compile();
         var hasFatal = compiler.exceptions
             .any((e) => e.severity == BullseyeExceptionSeverity.error);
 
@@ -109,6 +112,7 @@ main(List<String> args) async {
     exitCode = 1;
     stderr
       ..writeln(e.message)
+      ..writeln()
       ..writeln('usage: blsc [options...] <inputs>')
       ..writeln('Options:')
       ..writeln()
