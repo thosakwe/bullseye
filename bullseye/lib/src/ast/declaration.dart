@@ -11,6 +11,29 @@ abstract class TopLevelDeclaration extends AnnotatedNode {
       : super(annotations, comments, span);
 }
 
+class LetBinding extends Node {
+  final Identifier identifier;
+  final Expression value;
+
+  LetBinding(List<Token> comments, FileSpan span, this.identifier, this.value)
+      : super(comments, span);
+}
+
+class Block extends Node {
+  final List<LetBinding> letBindings;
+  final Expression returnValue;
+
+  Block(List<Token> comments, FileSpan span, this.letBindings, this.returnValue)
+      : super(comments, span);
+}
+
+class BeginEndExpression extends Expression {
+  final Block block;
+
+  BeginEndExpression(List<Token> comments, FileSpan span, this.block)
+      : super(comments, span);
+}
+
 class FunctionDeclaration extends TopLevelDeclaration {
   final Identifier name;
   final ParameterList parameterList;
