@@ -2,6 +2,11 @@ import 'package:bullseye/bullseye.dart';
 
 class ExpressionParser extends PrattParser<Expression> {
   ExpressionParser(Parser parser) : super(parser) {
+    addPrefixParselets();
+    addInfixParselets();
+  }
+
+  void addPrefixParselets() {
     addPrefix(
       TokenType.double$,
       (p, token) => new DoubleLiteral(token, [], token.span),
@@ -52,5 +57,25 @@ class ExpressionParser extends PrattParser<Expression> {
         }
       },
     );
+  }
+
+  void addInfixParselets() {
+    InfixParselet<Expression> addSub = (p, prec, left, token) {
+      var right = p.expressionParser.parse(prec - 1);
+      if (right != null) {
+        return new AddSubExpression([],
+            left.span.expand(token.span).expand(right.span),
+            left,
+            right,
+            token);
+      } else {
+        p.exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,
+            token.span, "Missing expression after '${token.span.text}'."));
+        return null;
+      }
+    };
+
+    addInfix(TokenType.plus, addSub);
+    addInfix(TokenType.minus, addSub);
   }
 }

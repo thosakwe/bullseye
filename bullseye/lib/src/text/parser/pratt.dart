@@ -2,7 +2,7 @@ import 'package:bullseye/bullseye.dart';
 
 typedef T PrefixParselet<T>(Parser parser, Token token);
 
-typedef T InfixParselet<T>(Parser parser, T left, Token token);
+typedef T InfixParselet<T>(Parser parser, int precedence, T left, Token token);
 
 abstract class PrattParser<T> {
   final Parser parser;
@@ -14,6 +14,7 @@ abstract class PrattParser<T> {
   PrattParser(this.parser);
 
   InfixParselet<T> _nextInfix = null;
+  int _lastPrecedence;
 
   int get _nextPrecedence {
     int i = 0;
@@ -21,7 +22,8 @@ abstract class PrattParser<T> {
     for (var entry in _infixParselets.entries) {
       if (parser.peek()?.type == entry.key) {
         _nextInfix = entry.value;
-        return i;
+        _lastPrecedence = i;
+        return _lastPrecedence = i;
       } else {
         i++;
       }
@@ -35,10 +37,9 @@ abstract class PrattParser<T> {
     if (_prefixParselets.containsKey(next.type) && parser.moveNext()) {
       var left = _prefixParselets[next.type](parser, next);
 
-      while (left != null &&
-          precedence < _nextPrecedence &&
-          parser.moveNext()) {
-        left = _nextInfix(parser, left, parser.current);
+      while (
+          left != null && precedence <= _nextPrecedence && parser.moveNext()) {
+        left = _nextInfix(parser, _lastPrecedence, left, parser.current);
       }
 
       return left;

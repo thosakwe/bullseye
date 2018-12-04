@@ -5,6 +5,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:kernel/class_hierarchy.dart' as k;
 import 'package:kernel/core_types.dart' as k;
 import 'package:kernel/kernel.dart' as k;
+import 'package:kernel/library_index.dart' as k;
 import 'package:kernel/type_environment.dart' as k;
 import 'package:string_scanner/string_scanner.dart';
 import 'package:symbol_table/symbol_table.dart';
@@ -44,6 +45,7 @@ class BullseyeKernelCompiler {
   final Parser parser;
   BullseyeKernelExpressionCompiler expressionCompiler;
   k.Library library;
+  k.LibraryIndex libraryIndex;
   k.Procedure mainMethod;
   SymbolTable<k.Expression> scope = new SymbolTable();
   k.ClassHierarchy classHierarchy;
@@ -86,6 +88,7 @@ class BullseyeKernelCompiler {
         await k.loadComponentFromBinary(platformStringUri.toFilePath());
     coreTypes = new k.CoreTypes(vmPlatform);
     classHierarchy = new k.ClassHierarchy(vmPlatform);
+    libraryIndex = new k.LibraryIndex.all(vmPlatform);
     types = new k.TypeEnvironment(coreTypes, classHierarchy, strongMode: true);
   }
 
@@ -159,6 +162,7 @@ class BullseyeKernelCompiler {
 
     // Compile the return value
     var retVal = expressionCompiler.compile(returnValue, scope);
+    if (retVal == null) return null;
     body.add(new k.ReturnStatement(retVal));
 
     k.Statement out = new k.Block(body);

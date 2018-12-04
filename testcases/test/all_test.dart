@@ -1,6 +1,6 @@
 import 'dart:io';
-
 import 'package:bullseye/bullseye.dart';
+//import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:glob/glob.dart';
 import 'package:kernel/ast.dart';
@@ -42,6 +42,11 @@ void testIdenticalOutput() {
 
         dartComponent.libraries[0].importUri =
             blsComponent.libraries[0].importUri;
+
+        // AD HOC
+        // var r = dartComponent.mainMethod.function.body as ReturnStatement;
+        // var x = r.expression as MethodInvocationJudgment;
+        // throw x.interfaceTarget;
 
         var blsText = new StringBuffer();
         var dartText = new StringBuffer();
