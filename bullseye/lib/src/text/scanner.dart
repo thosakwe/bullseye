@@ -4,7 +4,43 @@ import 'exception.dart';
 import 'token.dart';
 import 'token_type.dart';
 
-class Scanner {
+class ScannerIterator extends BidirectionalIterator<Token> {
+  final Scanner scanner;
+  int _index = -1;
+
+  ScannerIterator(this.scanner);
+
+  @override
+  Token get current {
+    if (_index < 0 || _index >= scanner.tokens.length - 1) {
+      return null;
+    } else {
+      return scanner.tokens[_index];
+    }
+  }
+
+  @override
+  bool moveNext() {
+    if (_index < scanner.tokens.length - 1) {
+      return false;
+    } else {
+      _index++;
+      return true;
+    }
+  }
+
+  @override
+  bool movePrevious() {
+    if (_index >= 0) {
+      _index--;
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+class Scanner extends Iterable<Token> with IterableMixin<Token> {
   final SpanScanner scanner;
   final List<BullseyeException> exceptions = [];
   final List<Token> tokens = [];
@@ -14,6 +50,8 @@ class Scanner {
   Scanner(this.scanner) {
     stateStack.addFirst(new NormalModeScanner(this));
   }
+
+  ScannerIterator get iterator => new ScannerIterator(this);
 
   void scan() {
     while (!scanner.isDone && stateStack.isNotEmpty) {
