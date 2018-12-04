@@ -10,6 +10,11 @@ var argParser = new ArgParser()
       negatable: false,
       defaultsTo: false,
       help: 'Print this help information.')
+  ..addFlag('link',
+      abbr: 'L',
+      negatable: false,
+      defaultsTo: false,
+      help: 'Link a number of .dill files together.')
   ..addOption('format',
       abbr: 'f',
       allowed: ['binary', 'text'],
