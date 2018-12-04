@@ -6,31 +6,51 @@ class BullseyeKernelCompiler {
   final List<BullseyeException> exceptions = [];
   final List<k.Library> libraries = [];
   final CompilationUnit compilationUnit;
+  BullseyeKernelExpressionCompiler expressionCompiler;
+  k.Library library;
+  k.Procedure mainMethod;
   SymbolTable<k.Expression> scope = new SymbolTable();
   bool _compiled = false;
 
-  BullseyeKernelCompiler(this.compilationUnit);
+  BullseyeKernelCompiler(this.compilationUnit) {
+    expressionCompiler = new BullseyeKernelExpressionCompiler(this);
+    library = new k.Library(compilationUnit.span.sourceUrl);
+  }
 
   k.Component toComponent() {
     compile();
-    return new k.Component(libraries: libraries);
+
+    if (mainMethod != null) {
+      return new k.Component()..mainMethod = mainMethod;
+    } else {
+      return new k.Component(libraries: libraries)..mainMethod = mainMethod;
+    }
   }
 
   void compile() {
     if (!_compiled) {
       for (var decl in compilationUnit.topLevelDeclarations) {
-        if (decl is FunctionDeclaration) {}
+        if (decl is FunctionDeclaration) {
+          var fn = compileFunctionDeclaration(decl);
+          library.addProcedure(fn);
+          if (decl.name.name == 'main') mainMethod = fn;
+        }
       }
 
       _compiled = true;
     }
   }
 
-  k.FunctionDeclaration compileFunctionDeclaration(FunctionDeclaration ctx) {
-    var variable = new k.VariableDeclaration(ctx.name.name);
+  k.Procedure compileFunctionDeclaration(FunctionDeclaration ctx) {
+    var name = new k.Name(ctx.name.name);
     var function = compileFunctionBody(ctx.parameterList.parameters,
         ctx.body.letBindings, ctx.body.returnValue);
-    return new k.FunctionDeclaration(variable, function);
+    var reference = new k.Reference()
+      ..canonicalName = k.CanonicalName.root()
+          .getChildFromUri(ctx.span.sourceUrl)
+          .getChild(ctx.name.name);
+    return new k.Procedure(name, k.ProcedureKind.Method, function,
+        reference: reference);
   }
 
   k.FunctionNode compileFunctionBody(List<Parameter> parameters,
@@ -41,6 +61,12 @@ class BullseyeKernelCompiler {
     var requiredCount = 0;
     // TODO: Async
     // TODO: Return type
+
+    // TODO: Compile let bindings
+
+    // Compile the return value
+    var retVal = expressionCompiler.compile(returnValue);
+    body.add(new k.ReturnStatement(retVal));
 
     return new k.FunctionNode(new k.Block(body),
         positionalParameters: positional,

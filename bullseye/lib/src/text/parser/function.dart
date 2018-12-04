@@ -156,7 +156,7 @@ class FunctionParser {
             BullseyeExceptionSeverity.error,
             previousSpan,
             "Expected a list of parameters. If this function has no parameters, supply a '()' literal."));
-        return new ParameterList(unit.comments, unit.span, []);
+        return new ParameterList([], span, []);
       }
 
       return new ParameterList(parameters.first.comments, span, parameters);
