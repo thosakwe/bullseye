@@ -18,8 +18,7 @@ class Annotation extends Node {
 class Identifier extends Expression {
   final Token token;
 
-  Identifier(List<Token> comments, FileSpan span, this.token)
-      : super(comments, span);
+  Identifier(List<Token> comments, this.token) : super(comments, token.span);
 
   String get name => token.span.text;
 }

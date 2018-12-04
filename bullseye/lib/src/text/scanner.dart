@@ -19,6 +19,22 @@ class ScannerIterator extends BidirectionalIterator<Token> {
     }
   }
 
+  bool get done {
+    if (_index < scanner.tokens.length - 1) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  Token peek() {
+    if (!done) {
+      return scanner.tokens[_index + 1];
+    } else {
+      return null;
+    }
+  }
+
   @override
   bool moveNext() {
     if (_index < scanner.tokens.length - 1) {

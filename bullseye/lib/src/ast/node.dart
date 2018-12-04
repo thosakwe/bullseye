@@ -14,3 +14,7 @@ class AnnotatedNode extends Node {
   AnnotatedNode(this.annotations, List<Token> comments, FileSpan span)
       : super(comments, span);
 }
+
+class UnitLiteral extends Node {
+  UnitLiteral(FileSpan span) : super([], span);
+}

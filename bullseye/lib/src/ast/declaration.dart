@@ -37,7 +37,7 @@ class BeginEndExpression extends Expression {
 class FunctionDeclaration extends TopLevelDeclaration {
   final Identifier name;
   final ParameterList parameterList;
-  final Expression body;
+  final Block body;
 
   FunctionDeclaration(List<Annotation> annotations, List<Token> comments,
       FileSpan span, this.name, this.parameterList, this.body)
@@ -45,7 +45,9 @@ class FunctionDeclaration extends TopLevelDeclaration {
 }
 
 class ParameterList extends Node {
-  ParameterList(List<Token> comments, FileSpan span) : super(comments, span);
+  final List<Parameter> parameters;
+  ParameterList(List<Token> comments, FileSpan span, this.parameters)
+      : super(comments, span);
 }
 
 class Parameter extends AnnotatedNode {
