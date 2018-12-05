@@ -89,25 +89,22 @@ class BullseyeKernelExpressionCompiler {
       left.type = leftType = rightType;
     }
 
-    if (right is ParameterGet && right.isDynamic) {
-      right.type = rightType = leftType;
-    }
-
     if (leftType is k.InterfaceType) {
       var clazz = leftType.className.asClass;
-      k.Procedure member;
+      k.Procedure procedure;
 
       while (clazz != null) {
-        member = clazz.procedures
+        procedure = clazz.procedures
             .firstWhere((m) => m.name.name == op, orElse: () => null);
-        if (member != null) break;
+        if (procedure != null) break;
         clazz = clazz.superclass;
       }
 
-      if (member != null) {
+      if (procedure != null) {
         var name = new k.Name(op);
         var args = new k.Arguments([right]);
-        return new k.MethodInvocation(left, name, args, member);
+        inferArgumentTypes(args, procedure.function);
+        return new k.MethodInvocation(left, name, args, procedure);
       } else {
         compiler.exceptions.add(new BullseyeException(
             BullseyeExceptionSeverity.error,
