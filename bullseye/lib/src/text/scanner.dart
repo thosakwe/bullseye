@@ -24,6 +24,17 @@ class ScannerIterator extends BidirectionalIterator<Token> {
     }
   }
 
+  ///Attempts to return a result, and backtracks if the callback returns `null`.
+  T runOrBacktrack<T>(T Function() f) {
+    var position = _index;
+    var result = f();
+    if (result == null) {
+      _index = position;
+    }
+
+    return result;
+  }
+
   Token peek() {
     if (!done) {
       return scanner.tokens[_index + 1];
@@ -250,7 +261,8 @@ class StringModeScanner extends SubScannerBase {
   Map<Pattern, TokenType> patterns = {
     new RegExp(r'\\(b|f|n|r|t|\\)'): TokenType.escapeStringPart,
     new RegExp(r'\\[Xx]([A-Fa-f0-9][A-Fa-f0-9])'): TokenType.hexStringPart,
-    new RegExp(r'\\[Uu]([A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9])'): TokenType.unicodeStringPart,
+    new RegExp(r'\\[Uu]([A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9])'):
+        TokenType.unicodeStringPart,
     new RegExp(r'\\[Uu]{([A-Fa-f0-9]+)}'): TokenType.unicodeStringPart,
     new RegExp(r'\$([A-Za-z_])([A-Za-z0-9_])*'):
         TokenType.stringSingleInterpPart,

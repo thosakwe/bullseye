@@ -115,6 +115,21 @@ class FunctionParser {
   }
 
   LetBinding parseLetBinding() {
+    // Try to parse a function declaration.
+    var decl = parser.runOrBacktrack(parseFunctionDeclaration);
+
+    if (decl != null) {
+      // Read the `in` keyword, used to separate values.
+      if (parser.peek()?.type != TokenType.in$ || !parser.moveNext()) {
+        parser.exceptions.add(new BullseyeException(
+            BullseyeExceptionSeverity.error,
+            decl.span,
+            "Expected 'in' after function declaration."));
+      }
+
+      return new LetBinding.forFunction(decl);
+    }
+
     if (parser.peek()?.type == TokenType.let && parser.moveNext()) {
       var let = parser.current;
 

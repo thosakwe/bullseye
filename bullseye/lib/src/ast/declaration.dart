@@ -37,9 +37,16 @@ abstract class TopLevelDeclaration extends AnnotatedNode {
 class LetBinding extends Node {
   final Identifier identifier;
   final Expression value;
+  final FunctionDeclaration functionDeclaration;
 
   LetBinding(List<Token> comments, FileSpan span, this.identifier, this.value)
-      : super(comments, span);
+      : functionDeclaration = null,
+        super(comments, span);
+
+  LetBinding.forFunction(this.functionDeclaration)
+      : identifier = null,
+        value = null,
+        super(functionDeclaration.comments, functionDeclaration.span);
 }
 
 class Block extends Node {
