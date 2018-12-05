@@ -94,10 +94,10 @@ class BullseyeKernelCompiler {
     classHierarchy = new k.ClassHierarchy(vmPlatform);
     libraryIndex = new k.LibraryIndex.all(vmPlatform);
     types = new k.TypeEnvironment(coreTypes, classHierarchy, strongMode: true);
-    await import(Uri.parse('dart:core'), compilationUnit.span);
+    await importLibrary(Uri.parse('dart:core'), compilationUnit.span);
   }
 
-  Future import(Uri uri, FileSpan span, {String alias}) async {
+  Future importLibrary(Uri uri, FileSpan span, {String alias}) async {
     // TODO: Alias support, show, hide
     if (_imported.add(uri)) {
       var lib = libraryIndex.tryGetLibrary(uri.toString());
@@ -111,6 +111,26 @@ class BullseyeKernelCompiler {
       }
 
       // Copy in all public symbols from the library...
+      for (var clazz in lib.classes) {
+        try {
+          var w = new TypeWrapper(clazz.thisType, clazz: clazz);
+          scope.create(clazz.name, value: w, constant: true);
+        } on StateError catch (e) {
+          exceptions.add(new BullseyeException(
+              BullseyeExceptionSeverity.error, span, e.message));
+        }
+      }
+
+      for (var type in lib.typedefs) {
+        try {
+          var w = new TypeWrapper(type.type, typedef$: type);
+          scope.create(type.name, value: w, constant: true);
+        } on StateError catch (e) {
+          exceptions.add(new BullseyeException(
+              BullseyeExceptionSeverity.error, span, e.message));
+        }
+      }
+
       for (var member in lib.members) {
         var name = member.name.name;
 
@@ -127,7 +147,7 @@ class BullseyeKernelCompiler {
             exceptions.add(new BullseyeException(
                 BullseyeExceptionSeverity.error,
                 span,
-                "The symbol '' is imported from libraries $uri and $existing, and therefore is ambiguous."));
+                "The symbol '$name' is imported from libraries $uri and $existing, and therefore is ambiguous."));
           }
         }
       }
@@ -305,4 +325,28 @@ class ParameterGet extends k.Expression {
 
   @override
   visitChildren(k.Visitor v) => value.visitChildren(v);
+}
+
+class TypeWrapper extends k.Expression {
+  final k.DartType type;
+  final k.Class clazz;
+  final k.Typedef typedef$;
+
+  TypeWrapper(this.type, {this.clazz, this.typedef$});
+
+  @override
+  accept(k.ExpressionVisitor v) => new k.InvalidExpression(
+      'Cannot treat $type as though it were a regular object.');
+
+  @override
+  accept1(k.ExpressionVisitor1 v, arg) => accept(null);
+
+  @override
+  k.DartType getStaticType(k.TypeEnvironment types) => types.typeType;
+
+  @override
+  transformChildren(k.Transformer v) => null;
+
+  @override
+  visitChildren(k.Visitor v) => null;
 }

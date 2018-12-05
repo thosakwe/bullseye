@@ -110,7 +110,7 @@ class BullseyeKernelExpressionCompiler {
       compiler.exceptions.add(new BullseyeException(
           BullseyeExceptionSeverity.error,
           ctx.name.span,
-          "The name '${ctx.name.name}' does not exist in this context."));
+          "The name '${ctx.name.name}' does not exist in this context, and therefore cannot be invoked."));
       return null;
     } else {
       var positional = <k.Expression>[];
@@ -132,11 +132,24 @@ class BullseyeKernelExpressionCompiler {
       var typeOfType = compiler.coreTypes.typeClass;
       k.InterfaceType interfaceType;
 
-      // Check if the expression is an instance of Type.
-      if (targetType is k.InterfaceType &&
-          compiler.classHierarchy
-              .isSubclassOf(targetType.classNode, typeOfType)) {
-        interfaceType = targetType;
+      // If this is a type wrapper, handle it.
+      if (targetExpr is TypeWrapper) {
+        if (targetExpr.clazz != null) {
+          interfaceType = targetExpr.clazz.thisType;
+        } else {
+          compiler.exceptions.add(new BullseyeException(
+              BullseyeExceptionSeverity.error,
+              ctx.name.span,
+              "$interfaceType is a typedef, and therefore cannot be instantiated."));
+          return null;
+        }
+      } else {
+        // Check if the expression is an instance of Type.
+        if (targetType is k.InterfaceType &&
+            compiler.classHierarchy
+                .isSubclassOf(targetType.classNode, typeOfType)) {
+          interfaceType = targetType;
+        }
       }
 
       if (interfaceType != null) {

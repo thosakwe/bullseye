@@ -1,0 +1,3 @@
+let main() =
+    let d = Duration seconds = 34 in
+    d
