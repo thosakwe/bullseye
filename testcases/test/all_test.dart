@@ -46,10 +46,12 @@ void testIdenticalOutput() {
           ..librariesSpecificationUri = specUri
           ..packagesFileUri = await PackageResolver.current.packageConfigUri;
 
-        var dartComponent = await kernelForProgram(
-            new Uri(scheme: 'file', path: p.absolute(dartPath)), options);
+        var dartFileUri = new Uri(scheme: 'file', path: p.absolute(dartPath));
+        // var dartComponent = await kernelForProgram(
+        //     new Uri(scheme: 'file', path: p.absolute(dartPath)), options);
+        var dartComponent = await kernelForComponent([dartFileUri], options);
 
-        if (blsComponent == null && false)
+        if (blsComponent == null)
           throw new StateError('Bullseye compilation failed.');
         else if (dartComponent == null)
           throw new StateError('Dart compilation failed.');

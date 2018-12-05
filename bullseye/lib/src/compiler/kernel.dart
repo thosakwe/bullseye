@@ -11,6 +11,7 @@ import 'package:kernel/core_types.dart' as k;
 import 'package:kernel/kernel.dart' as k;
 import 'package:kernel/library_index.dart' as k;
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/text/ast_to_text.dart' as k;
 import 'package:kernel/type_environment.dart' as k;
 import 'package:package_resolver/package_resolver.dart';
 import 'package:path/path.dart' as p;
@@ -48,15 +49,12 @@ Future<k.Component> compileBullseyeToKernel(String source, sourceUrl,
 class BullseyeKernelCompiler {
   final List<BullseyeException> exceptions = [];
   final Map<Uri, k.Library> loadedLibraries = {};
-  final List<k.Library> libraries = [];
   final Map<k.VariableGet, k.Reference> procedureReferences = {};
-  final Map<Uri, k.Source> uriToSource = {};
   final CompilationUnit compilationUnit;
   final Parser parser;
   BullseyeKernelExpressionCompiler expressionCompiler;
   k.Library library;
   k.LibraryIndex libraryIndex;
-  k.Procedure mainMethod;
   SymbolTable<k.Expression> scope = new SymbolTable();
   k.ClassHierarchy classHierarchy;
   k.CoreTypes coreTypes;
@@ -64,6 +62,7 @@ class BullseyeKernelCompiler {
   k.Component vmPlatform;
   k.TypeEnvironment types;
 
+  final k.Component _component = new k.Component();
   final Set<Uri> _imported = new Set();
 
   bool _compiled = false;
@@ -78,7 +77,7 @@ class BullseyeKernelCompiler {
     // TODO: This used to have a reference arg
     library = new k.Library(compilationUnit.span.sourceUrl,
         fileUri: compilationUnit.span.sourceUrl);
-    libraries.add(library);
+    _component.libraries.add(library);
 
     var ss = parser.scanner.scanner;
     var lineStarts = <int>[];
@@ -91,7 +90,7 @@ class BullseyeKernelCompiler {
       }
     }
 
-    uriToSource[ctx.span.sourceUrl] =
+    _component.uriToSource[ctx.span.sourceUrl] =
         new k.Source(lineStarts, utf8.encode(ss.string));
   }
 
@@ -149,11 +148,7 @@ class BullseyeKernelCompiler {
 
         component = await fe.kernelForComponent([resolved], options);
 
-        if (component != null) {
-          for (var lib in component.libraries) {
-            lib.fileUri = resolved;
-          }
-        } else {
+        if (component == null) {
           throw new StateError('Compilation of file $uri to IR failed.');
         }
       } else if (p.extension(resolved.path) != '.dill') {
@@ -161,7 +156,16 @@ class BullseyeKernelCompiler {
       }
 
       if (component.libraries.isNotEmpty) {
-        return loadedLibraries[uri] = component.libraries.first;
+        // Load all libraries in.
+        for (var lib in component.libraries) {
+          loadedLibraries[lib.importUri] ??= lib;
+          vmPlatform.libraries.add(lib);
+          classHierarchy = new k.ClassHierarchy(vmPlatform);
+        }
+
+        var out = component.libraries.firstWhere((l) => l.importUri == resolved);
+        out.importUri = uri;
+        return out;
       } else {
         throw new StateError(
             'File $uri does not contain any Dart or Bullseye libraries.');
@@ -177,71 +181,85 @@ class BullseyeKernelCompiler {
       List<String> hide = const []}) async {
     // TODO: Alias support (use a LibraryWrapper expression)
     if (_imported.add(uri)) {
-      var lib = await loadLibrary(uri);
+      void apply(k.Library lib) {
+        if (uri != dartCoreUri)
+          library.addDependency(new k.LibraryDependency.import(lib));
 
-      if (uri != dartCoreUri)
-        library.addDependency(new k.LibraryDependency.import(lib));
-
-      bool canImport(String name) {
-        if (show.isNotEmpty && !show.contains(name)) return false;
-        if (hide.isNotEmpty && hide.contains(name)) return false;
-        return true;
-      }
-
-      // Copy in all public symbols from the library...
-      for (var clazz in lib.classes) {
-        try {
-          if (!canImport(clazz.name)) continue;
-          var w = new TypeWrapper(clazz.thisType, clazz: clazz);
-          scope.create(clazz.name, value: w, constant: true);
-        } on StateError catch (e) {
-          exceptions.add(new BullseyeException(
-              BullseyeExceptionSeverity.error, span, e.message));
+        bool canImport(String name) {
+          if (show.isNotEmpty && !show.contains(name)) return false;
+          if (hide.isNotEmpty && hide.contains(name)) return false;
+          return true;
         }
-      }
 
-      for (var type in lib.typedefs) {
-        try {
-          if (!canImport(type.name)) continue;
-          var w = new TypeWrapper(type.type, typedef$: type);
-          scope.create(type.name, value: w, constant: true);
-        } on StateError catch (e) {
-          exceptions.add(new BullseyeException(
-              BullseyeExceptionSeverity.error, span, e.message));
-        }
-      }
+        // Copy in all public symbols from the library...
 
-      for (var member in lib.members) {
-        var name = member.name.name;
-        if (!canImport(name)) continue;
-
-        if (!name.startsWith('_')) {
+        for (var ref in lib.additionalExports) {
           try {
-            var ref = member.canonicalName.getReference();
-            var vGet = new k.VariableGet(
-                new k.VariableDeclaration(name, type: member.getterType));
-            scope.create(name, value: vGet, constant: true);
-            if (member is k.Procedure)
-              procedureReferences[vGet] = ref..node = member;
+            var clazz = ref.asClass;
+            if (!canImport(clazz.name)) continue;
+            var w = new TypeWrapper(clazz.thisType, clazz: clazz);
+            scope.create(clazz.name, value: w, constant: true);
           } on StateError catch (e) {
-            // TODO: Why are some symbols redefined...?
-            var existing = scope.resolve(name)?.value?.location?.file;
-            var message = existing != null
-                ? "The symbol '$name' is imported from libraries $uri and $existing, and therefore is ambiguous."
-                : 'Error when importing $uri: ${e.message}';
             exceptions.add(new BullseyeException(
-                BullseyeExceptionSeverity.warning, span, message));
+                BullseyeExceptionSeverity.error, span, e.message));
+          }
+        }
+
+        for (var clazz in lib.classes) {
+          try {
+            if (!canImport(clazz.name)) continue;
+            var w = new TypeWrapper(clazz.thisType, clazz: clazz);
+            scope.create(clazz.name, value: w, constant: true);
+          } on StateError catch (e) {
+            exceptions.add(new BullseyeException(
+                BullseyeExceptionSeverity.error, span, e.message));
+          }
+        }
+
+        for (var type in lib.typedefs) {
+          try {
+            if (!canImport(type.name)) continue;
+            var w = new TypeWrapper(type.type, typedef$: type);
+            scope.create(type.name, value: w, constant: true);
+          } on StateError catch (e) {
+            exceptions.add(new BullseyeException(
+                BullseyeExceptionSeverity.error, span, e.message));
+          }
+        }
+
+        for (var member in lib.members) {
+          var name = member.name.name;
+          if (!canImport(name)) continue;
+
+          if (!name.startsWith('_')) {
+            try {
+              var ref = member.canonicalName.getReference();
+              var vGet = new k.VariableGet(
+                  new k.VariableDeclaration(name, type: member.getterType));
+              scope.create(name, value: vGet, constant: true);
+              if (member is k.Procedure)
+                procedureReferences[vGet] = ref..node = member;
+            } on StateError catch (e) {
+              // TODO: Why are some symbols redefined...?
+              var existing = scope.resolve(name)?.value?.location?.file;
+              var message = existing != null
+                  ? "The symbol '$name' is imported from libraries $uri and $existing, and therefore is ambiguous."
+                  : 'Error when importing $uri: ${e.message}';
+              exceptions.add(new BullseyeException(
+                  BullseyeExceptionSeverity.warning, span, message));
+            }
           }
         }
       }
+
+      var lib = await loadLibrary(uri);
+      apply(lib);
     }
   }
 
   k.Component toComponent() {
     compile();
-
-    return new k.Component(libraries: libraries, uriToSource: uriToSource)
-      ..mainMethod = mainMethod;
+    return _component;
   }
 
   k.Reference getReference(String name) {
@@ -261,7 +279,7 @@ class BullseyeKernelCompiler {
           var fn = compileFunctionDeclaration(decl);
           if (fn == null) continue;
           library.addMember(fn);
-          if (decl.name.name == 'main') mainMethod = fn;
+          if (decl.name.name == 'main') _component.mainMethod = fn;
 
           // Add it to the scope
           var v = new k.VariableDeclaration(decl.name.name,
