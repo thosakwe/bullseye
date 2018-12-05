@@ -132,6 +132,16 @@ class ExpressionParser extends PrattParser<Expression> {
         }
       },
     );
+    addPrefix(TokenType.await$, (p, token) {
+      var expr = p.expressionParser.parse();
+      if (expr != null) {
+        return new AwaitedExpression([], token.span.expand(expr.span), expr);
+      } else {
+        p.exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,
+            token.span, "Missing expression after 'await' keyword."));
+        return null;
+      }
+    });
   }
 
   void addInfixParselets() {
