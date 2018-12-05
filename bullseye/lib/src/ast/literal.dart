@@ -126,6 +126,10 @@ class EscapeStringPart extends TextStringPart {
 
   @override
   String get text {
+    if (token.match.groupCount == 0) {
+      return token.match[0].substring(1);
+    }
+
     switch (token.match[1]) {
       case 'b':
         return '\b';
@@ -140,7 +144,8 @@ class EscapeStringPart extends TextStringPart {
       case '\\':
         return '\\';
       default:
-        return token.match[1];
+        var ch = int.parse(token.match[1], radix: 16);
+        return new String.fromCharCode(ch);
     }
   }
 }
