@@ -93,10 +93,13 @@ class Parser extends ScannerIterator {
 
   StringPart parseStringPart() {
     var la = peek();
-
     if (la?.type == TokenType.textStringPart && moveNext()) {
       return new TextStringPart(current.span);
     } else if (la?.type == TokenType.escapeStringPart && moveNext()) {
+      return new EscapeStringPart(current);
+    } else if (la?.type == TokenType.escapedQuotePart && moveNext()) {
+      return new EscapeStringPart(current);
+    } else if (la?.type == TokenType.unicodeStringPart && moveNext()) {
       return new EscapeStringPart(current);
     } else if (la?.type == TokenType.hexStringPart && moveNext()) {
       return new HexStringPart(current);

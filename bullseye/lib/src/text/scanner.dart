@@ -247,14 +247,16 @@ class StringModeScanner extends SubScannerBase {
   @override
   Map<Pattern, TokenType> patterns = {
     new RegExp(r'\\(b|f|n|r|t|\\)'): TokenType.escapeStringPart,
-    new RegExp(r'\\x([A-Fa-f0-9][A-Fa-f0-9])'): TokenType.hexStringPart,
+    new RegExp(r'\\[Xx]([A-Fa-f0-9][A-Fa-f0-9])'): TokenType.hexStringPart,
+    new RegExp(r'\\[Uu]([A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9])'): TokenType.unicodeStringPart,
+    new RegExp(r'\\[Uu]{([A-Fa-f0-9]+)}'): TokenType.unicodeStringPart,
     new RegExp(r'\$([A-Za-z_]|\$)([A-Za-z0-9_]|\$)*'):
         TokenType.stringSingleInterpPart,
   };
 
   StringModeScanner(this.scanner, this.delimiter, this.delimiterString) {
     patterns['\\$delimiterString'] = TokenType.escapedQuotePart;
-    patterns[new RegExp('[^$delimiterString]+')] = TokenType.textStringPart;
+    patterns[new RegExp('[^$delimiterString\\\\]+')] = TokenType.textStringPart;
   }
 
   @override
