@@ -290,9 +290,35 @@ class BullseyeKernelExpressionCompiler {
           return null;
         }
       } else {
-        // Otherwise, it's just a property get.
-        // TODO: Check to see the field exists?
-        return new k.PropertyGet(object, new k.Name(ctx.name.name));
+        // Resolve the type of the object, to find the getter.
+        var typeOf = object.getStaticType(compiler.types);
+
+        if (typeOf is k.InterfaceType) {
+          var clazz = typeOf.classNode;
+
+          while (clazz != null) {
+            var field = clazz.procedures.firstWhere(
+                (f) => f.isGetter && f.name.name == ctx.name.name,
+                orElse: () => null);
+
+            if (field != null) {
+              return new k.PropertyGet(
+                  object, new k.Name(ctx.name.name), field);
+            }
+
+            clazz = clazz.superclass;
+          }
+
+          compiler.exceptions.add(BullseyeException(
+              BullseyeExceptionSeverity.error,
+              ctx.name.span,
+              "$typeOf has no getter named '${ctx.name.name}'."));
+          return null;
+          // TODO: Check to see the field exists?
+        } else {
+          // Otherwise, it's just a property get.
+          return new k.PropertyGet(object, new k.Name(ctx.name.name));
+        }
       }
     }
   }

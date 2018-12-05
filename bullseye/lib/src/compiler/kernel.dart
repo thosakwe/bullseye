@@ -163,7 +163,8 @@ class BullseyeKernelCompiler {
           classHierarchy = new k.ClassHierarchy(vmPlatform);
         }
 
-        var out = component.libraries.firstWhere((l) => l.importUri == resolved);
+        var out =
+            component.libraries.firstWhere((l) => l.importUri == resolved);
         out.importUri = uri;
         return out;
       } else {
@@ -195,10 +196,17 @@ class BullseyeKernelCompiler {
 
         for (var ref in lib.additionalExports) {
           try {
-            var clazz = ref.asClass;
-            if (!canImport(clazz.name)) continue;
-            var w = new TypeWrapper(clazz.thisType, clazz: clazz);
-            scope.create(clazz.name, value: w, constant: true);
+            if (ref.node is k.Typedef) {
+              var type = ref.asTypedef;
+              if (!canImport(type.name)) continue;
+              var w = new TypeWrapper(type.type, typedef$: type);
+              scope.create(type.name, value: w, constant: true);
+            } else if (ref.node is k.Class) {
+              var clazz = ref.asClass;
+              if (!canImport(clazz.name)) continue;
+              var w = new TypeWrapper(clazz.thisType, clazz: clazz);
+              scope.create(clazz.name, value: w, constant: true);
+            }
           } on StateError catch (e) {
             exceptions.add(new BullseyeException(
                 BullseyeExceptionSeverity.error, span, e.message));
