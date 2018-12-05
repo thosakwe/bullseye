@@ -1,4 +1,5 @@
 import 'package:bullseye/bullseye.dart';
+import 'package:kernel/ast.dart' as k;
 import 'package:source_span/source_span.dart';
 
 class CompilationUnit extends Node {
@@ -59,10 +60,11 @@ class BeginEndExpression extends Expression {
 class FunctionDeclaration extends TopLevelDeclaration {
   final Identifier name;
   final ParameterList parameterList;
+  final k.AsyncMarker asyncMarker;
   final Block body;
 
   FunctionDeclaration(List<Annotation> annotations, List<Token> comments,
-      FileSpan span, this.name, this.parameterList, this.body)
+      FileSpan span, this.name, this.parameterList, this.asyncMarker, this.body)
       : super(annotations, comments, span);
 }
 

@@ -5,7 +5,7 @@ import 'package:angel_static/angel_static.dart'
 import 'package:file/file.dart'
 import 'package:file/local.dart'
 
-let async main() =
+let main() async =
     let app = Angel() in
     let http = AngelHttp app in
     let lfs = LocalFileSystem() in
@@ -16,7 +16,7 @@ let async main() =
     end
 
 let configureServer fs =
-    async fun (app: Angel) =
+    fun (app: Angel) async =
         begin
             let vDir = VirtualDirectory app fs source=(fs.directory 'web') in
             app.fallback vDir.handleRequest;

@@ -311,7 +311,7 @@ class BullseyeKernelCompiler {
   k.Procedure compileFunctionDeclaration(FunctionDeclaration ctx) {
     var name = new k.Name(ctx.name.name);
     var function = compileFunctionBody(ctx.parameterList.parameters,
-        ctx.body.letBindings, ctx.body.returnValue);
+        ctx.body.letBindings, ctx.body.returnValue, ctx.asyncMarker);
     if (function == null) return null;
     var ref = getReference(ctx.name.name);
     var fn = new k.Procedure(name, k.ProcedureKind.Method, function,
@@ -320,16 +320,17 @@ class BullseyeKernelCompiler {
     return fn;
   }
 
-  k.FunctionNode compileFunctionBody(List<Parameter> parameters,
-      Iterable<LetBinding> letBindings, Expression returnValue) {
+  k.FunctionNode compileFunctionBody(
+      List<Parameter> parameters,
+      Iterable<LetBinding> letBindings,
+      Expression returnValue,
+      k.AsyncMarker asyncMarker) {
     var s = scope.createChild();
     var body = <k.Statement>[];
     var positional = <k.VariableDeclaration>[];
     var named = <k.VariableDeclaration>[];
     var pGets = <ParameterGet>[];
     var requiredCount = 0;
-
-    // TODO: Async
 
     // Declare each parameter
     for (var parameter in parameters) {
@@ -388,7 +389,8 @@ class BullseyeKernelCompiler {
           positionalParameters: positional,
           namedParameters: named,
           requiredParameterCount: requiredCount,
-          returnType: types.nullType);
+          returnType: types.nullType,
+          asyncMarker: asyncMarker);
     } else {
       body.add(new k.ReturnStatement(retVal));
 
@@ -402,7 +404,8 @@ class BullseyeKernelCompiler {
           positionalParameters: positional,
           namedParameters: named,
           requiredParameterCount: requiredCount,
-          returnType: retVal.getStaticType(types));
+          returnType: retVal.getStaticType(types),
+          asyncMarker: asyncMarker);
     }
   }
 }

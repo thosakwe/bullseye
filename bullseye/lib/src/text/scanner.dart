@@ -177,6 +177,8 @@ class NormalModeScanner extends SubScannerBase {
     'as': TokenType.as$,
     'await': TokenType.await$,
     'async': TokenType.async$,
+    'async*': TokenType.asyncStar,
+    'sync*': TokenType.syncStar,
     'begin': TokenType.begin,
     'class': TokenType.class$,
     'const': TokenType.const$,

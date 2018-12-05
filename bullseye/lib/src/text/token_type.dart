@@ -61,6 +61,8 @@ enum TokenType {
   as$,
   await$,
   async$,
+  asyncStar,
+  syncStar,
   begin,
   class$,
   const$,

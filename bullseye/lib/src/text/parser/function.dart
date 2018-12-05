@@ -1,4 +1,5 @@
 import 'package:bullseye/bullseye.dart';
+import 'package:kernel/ast.dart' as k;
 import 'package:source_span/source_span.dart';
 
 class FunctionParser {
@@ -20,28 +21,52 @@ class FunctionParser {
         var parameterList = parseParameterList(id.span);
 
         if (parameterList != null) {
+          // Attempt to parse a marker...
+          k.AsyncMarker asyncMarker = k.AsyncMarker.Sync;
+
+          bool parseMarker(TokenType type, k.AsyncMarker marker) {
+            if (parser.peek()?.type == type && parser.moveNext()) {
+              asyncMarker = marker;
+              return true;
+            } else {
+              return false;
+            }
+          }
+
+          if (!parseMarker(TokenType.async$, k.AsyncMarker.Async)) {
+            if (!parseMarker(TokenType.asyncStar, k.AsyncMarker.AsyncStar)) {
+              parseMarker(TokenType.syncStar, k.AsyncMarker.SyncStar);
+            }
+          }
+
           if (parser.peek()?.type == TokenType.equals && parser.moveNext()) {
             var equals = parser.current;
             var block = parseBlock(equals.span);
 
             if (block != null) {
               return new FunctionDeclaration(annotations, comments,
-                  parameterList.span, id, parameterList, block);
+                  parameterList.span, id, parameterList, asyncMarker, block);
             } else {
               parser.exceptions.add(new BullseyeException(
                   BullseyeExceptionSeverity.error,
                   equals.span,
                   "Expected function body after '='."));
               return new FunctionDeclaration(annotations, comments, id.span, id,
-                  parameterList, defaultBlock);
+                  parameterList, asyncMarker, defaultBlock);
             }
           } else {
             parser.exceptions.add(new BullseyeException(
                 BullseyeExceptionSeverity.error,
                 id.span,
                 "Expected '=' after parameter list."));
-            return new FunctionDeclaration(annotations, comments,
-                parameterList.span, id, parameterList, defaultBlock);
+            return new FunctionDeclaration(
+                annotations,
+                comments,
+                parameterList.span,
+                id,
+                parameterList,
+                asyncMarker,
+                defaultBlock);
           }
         } else {
           parser.exceptions.add(new BullseyeException(
@@ -50,7 +75,7 @@ class FunctionParser {
               "Expected parameter list after identifier."));
           var defaultParameterList = new ParameterList([], id.span, []);
           return new FunctionDeclaration(annotations, comments, id.span, id,
-              defaultParameterList, defaultBlock);
+              defaultParameterList, k.AsyncMarker.Sync, defaultBlock);
         }
       } else {
         parser.exceptions.add(new BullseyeException(
