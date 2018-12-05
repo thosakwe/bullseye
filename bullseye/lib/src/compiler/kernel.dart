@@ -2,12 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:bullseye/bullseye.dart';
+import 'package:front_end/src/api_prototype/front_end.dart' as fe;
+import 'package:front_end/src/api_unstable/dart2js.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/class_hierarchy.dart' as k;
 import 'package:kernel/core_types.dart' as k;
 import 'package:kernel/kernel.dart' as k;
 import 'package:kernel/library_index.dart' as k;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart' as k;
 import 'package:package_resolver/package_resolver.dart';
 import 'package:path/path.dart' as p;
@@ -57,6 +60,7 @@ class BullseyeKernelCompiler {
   SymbolTable<k.Expression> scope = new SymbolTable();
   k.ClassHierarchy classHierarchy;
   k.CoreTypes coreTypes;
+  Uri platformStrongUri;
   k.Component vmPlatform;
   k.TypeEnvironment types;
 
@@ -93,9 +97,9 @@ class BullseyeKernelCompiler {
 
   Future initialize() async {
     var libsUri = await computePlatformBinariesLocation();
-    var platformStringUri = libsUri.resolve('vm_platform_strong.dill');
+    platformStrongUri = libsUri.resolve('vm_platform_strong.dill');
     vmPlatform =
-        await k.loadComponentFromBinary(platformStringUri.toFilePath());
+        await k.loadComponentFromBinary(platformStrongUri.toFilePath());
     coreTypes = new k.CoreTypes(vmPlatform);
     classHierarchy = new k.ClassHierarchy(vmPlatform);
     libraryIndex = new k.LibraryIndex.all(vmPlatform);
@@ -129,9 +133,21 @@ class BullseyeKernelCompiler {
 
       if (p.extension(resolved.path) == '.dart') {
         // Compile it via FASTA!
-        var text = await new File.fromUri(resolved).readAsString();
-        component =
-            await compileScript(text, fileName: p.basename(resolved.path));
+        var libsUri = await computePlatformBinariesLocation();
+        var specUri =
+            libsUri.replace(path: p.join(libsUri.path, '..', 'libraries.json'));
+        var flags = new TargetFlags(strongMode: true);
+        var target = new NoneTarget(flags);
+
+        CompilerOptions options = new CompilerOptions()
+          ..target = target
+          ..strongMode = target.strongMode
+          ..sdkSummary = platformStrongUri
+          //..linkedDependencies = [platformStrongUri]
+          ..librariesSpecificationUri = specUri
+          ..packagesFileUri = await PackageResolver.current.packageConfigUri;
+
+        component = await fe.kernelForComponent([resolved], options);
 
         if (component != null) {
           for (var lib in component.libraries) {

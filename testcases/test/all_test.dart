@@ -1,10 +1,14 @@
 import 'dart:io';
 import 'package:bullseye/bullseye.dart';
 //import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:glob/glob.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:package_resolver/package_resolver.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -26,22 +30,41 @@ void testIdenticalOutput() {
         // First, compile the bullseye source.
         var blsComponent = await compileBullseyeToKernel(
             await blsFile.readAsString(), p.toUri(blsPath), onException);
-        var dartComponent = await compileScript(await dartFile.readAsString());
 
-        if (blsComponent == null)
+        var libsUri = await computePlatformBinariesLocation();
+        var specUri =
+            libsUri.replace(path: p.join(libsUri.path, '..', 'libraries.json'));
+        var platformStrongUri = libsUri.resolve('vm_platform_strong.dill');
+        var flags = new TargetFlags(strongMode: true);
+        var target = new NoneTarget(flags);
+
+        CompilerOptions options = new CompilerOptions()
+          ..target = target
+          ..strongMode = target.strongMode
+          ..sdkSummary = platformStrongUri
+          //..linkedDependencies = [platformStrongUri]
+          ..librariesSpecificationUri = specUri
+          ..packagesFileUri = await PackageResolver.current.packageConfigUri;
+
+        var dartComponent = await kernelForProgram(
+            new Uri(scheme: 'file', path: p.absolute(dartPath)), options);
+
+        if (blsComponent == null && false)
           throw new StateError('Bullseye compilation failed.');
         else if (dartComponent == null)
           throw new StateError('Dart compilation failed.');
 
         // Remove all but the first library from the dart component.
-        dartComponent = new Component(
-            libraries: [dartComponent.libraries[0]],
-            nameRoot: dartComponent.root,
-            uriToSource: dartComponent.uriToSource)
-          ..mainMethod = dartComponent.mainMethod;
+        if (blsComponent != null) {
+          dartComponent = new Component(
+              libraries: [dartComponent.libraries[0]],
+              nameRoot: dartComponent.root,
+              uriToSource: dartComponent.uriToSource)
+            ..mainMethod = dartComponent.mainMethod;
 
-        dartComponent.libraries[0].importUri =
-            blsComponent.libraries[0].importUri;
+          dartComponent.libraries[0].importUri =
+              blsComponent.libraries[0].importUri;
+        }
 
         // AD HOC
         // var r = dartComponent.mainMethod.function.body as ReturnStatement;
@@ -56,7 +79,8 @@ void testIdenticalOutput() {
               showExternal: false, showMetadata: false, showOffsets: false);
         }
 
-        newPrinter(blsText).writeComponentFile(blsComponent);
+        if (blsComponent != null)
+          newPrinter(blsText).writeComponentFile(blsComponent);
         newPrinter(dartText).writeComponentFile(dartComponent);
 
         print('$name from Bullseye:\n$blsText');
