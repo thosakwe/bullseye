@@ -13,15 +13,22 @@ class ExpressionParser extends PrattParser<Expression> {
 
     var args = <Argument>[];
     var canParsePositional = true;
-    var arg = parseArgument(canParsePositional);
+    var unit = parser.parseUnit();
 
-    while (arg != null) {
-      canParsePositional = canParsePositional && arg is! NamedArgument;
-      args.add(arg);
-      arg = parseArgument(canParsePositional);
+    if (unit != null) {
+      span = target.span.expand(unit.span);
+    } else {
+      var arg = parseArgument(canParsePositional);
+
+      while (arg != null) {
+        canParsePositional = canParsePositional && arg is! NamedArgument;
+        args.add(arg);
+        span = span.expand(arg.span);
+        arg = parseArgument(canParsePositional);
+      }
     }
 
-    if (args.isEmpty) {
+    if (args.isEmpty && unit == null) {
       return target;
     } else {
       target = target.innermost;
