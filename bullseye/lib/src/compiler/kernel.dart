@@ -153,6 +153,8 @@ class BullseyeKernelCompiler {
     }
   }
 
+  static final Uri dartCoreUri = Uri.parse('dart:core');
+
   Future importLibrary(Uri uri, FileSpan span,
       {String alias,
       List<String> show = const [],
@@ -160,6 +162,9 @@ class BullseyeKernelCompiler {
     // TODO: Alias support (use a LibraryWrapper expression)
     if (_imported.add(uri)) {
       var lib = await loadLibrary(uri);
+
+      if (uri != dartCoreUri)
+        library.addDependency(new k.LibraryDependency.import(lib));
 
       bool canImport(String name) {
         if (show.isNotEmpty && !show.contains(name)) return false;
@@ -203,12 +208,13 @@ class BullseyeKernelCompiler {
             if (member is k.Procedure)
               procedureReferences[vGet] = ref..node = member;
           } on StateError catch (e) {
+            // TODO: Why are some symbols redefined...?
             var existing = scope.resolve(name)?.value?.location?.file;
             var message = existing != null
                 ? "The symbol '$name' is imported from libraries $uri and $existing, and therefore is ambiguous."
                 : 'Error when importing $uri: ${e.message}';
             exceptions.add(new BullseyeException(
-                BullseyeExceptionSeverity.error, span, message));
+                BullseyeExceptionSeverity.warning, span, message));
           }
         }
       }

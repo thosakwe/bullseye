@@ -13,6 +13,7 @@ class BullseyeKernelExpressionCompiler {
     if (ctx is Identifier) return compileIdentifier(ctx, scope);
     if (ctx is BinaryExpression) return compileBinary(ctx, scope);
     if (ctx is NamedCallExpression) return compileNamedCall(ctx, scope);
+    if (ctx is MemberExpression) return compileMember(ctx, scope);
     if (ctx is MemberCallExpression) return compileMemberCall(ctx, scope);
     compiler.exceptions.add(new BullseyeException(
         BullseyeExceptionSeverity.error,
@@ -267,8 +268,41 @@ class BullseyeKernelExpressionCompiler {
     }
   }
 
+  k.Expression compileMember(
+      MemberExpression ctx, SymbolTable<k.Expression> scope) {
+    // TODO: super? lib alias?
+    var object = compile(ctx.object, scope);
+
+    if (object == null) {
+      return null;
+    } else {
+      var interfaceType = resolveTargetToType(object, ctx.span);
+
+      // If this is a type, it's a static member; return its value.
+      if (interfaceType != null) {
+        var member = interfaceType.classNode.members.firstWhere(
+            (m) => m.name.name == ctx.name.name,
+            orElse: () => null);
+        if (member != null) {
+          return new k.StaticGet(member);
+        } else {
+          compiler.exceptions.add(new BullseyeException(
+              BullseyeExceptionSeverity.error,
+              ctx.name.span,
+              "$interfaceType has no static getter named '${ctx.name.name}'."));
+          return null;
+        }
+      } else {
+        // Otherwise, it's just a property get.
+        // TODO: Check to see the field exists?
+        return new k.PropertyGet(object, new k.Name(ctx.name.name));
+      }
+    }
+  }
+
   k.Expression compileMemberCall(
       MemberCallExpression ctx, SymbolTable<k.Expression> scope) {
+    // TODO: super? lib alias?
     var object = compile(ctx.target.object, scope);
 
     if (object == null) {
