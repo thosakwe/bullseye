@@ -72,7 +72,9 @@ class FunctionDeclaration extends TopLevelDeclaration {
 
   FunctionDeclaration(List<Annotation> annotations, List<Token> comments,
       FileSpan span, this.name, this.parameterList, this.asyncMarker, this.body)
-      : super(annotations, comments, span);
+      : super(annotations, comments, span) {
+    assert(span != null);
+  }
 }
 
 class ParameterList extends Node {

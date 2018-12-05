@@ -7,7 +7,7 @@ class FunctionParser {
 
   FunctionParser(this.parser);
 
-  FunctionDeclaration parseFunctionDeclaration() {
+  FunctionDeclaration parseFunctionDeclaration(bool maybeLetBinding) {
     if (parser.peek()?.type == TokenType.let && parser.moveNext()) {
       // TODO: Annotations  + comments
       var let = parser.current;
@@ -16,17 +16,21 @@ class FunctionParser {
 
       if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
         var id = new Identifier([], parser.current);
+        var span = id.span;
         var defaultBlock =
             new Block(comments, id.span, [], new NullLiteral([], id.span));
-        var parameterList = parseParameterList(id.span);
+        var parameterList = parseParameterList(id.span, !maybeLetBinding);
 
         if (parameterList != null) {
+          span = span.expand(parameterList.span);
+
           // Attempt to parse a marker...
           k.AsyncMarker asyncMarker = k.AsyncMarker.Sync;
 
           bool parseMarker(TokenType type, k.AsyncMarker marker) {
             if (parser.peek()?.type == type && parser.moveNext()) {
               asyncMarker = marker;
+              span = span.expand(parser.current.span);
               return true;
             } else {
               return false;
@@ -41,9 +45,11 @@ class FunctionParser {
 
           if (parser.peek()?.type == TokenType.equals && parser.moveNext()) {
             var equals = parser.current;
+            span = span.expand(equals.span);
             var block = parseBlock(equals.span);
 
             if (block != null) {
+              span = span.expand(block.span);
               return new FunctionDeclaration(annotations, comments,
                   parameterList.span, id, parameterList, asyncMarker, block);
             } else {
@@ -51,7 +57,7 @@ class FunctionParser {
                   BullseyeExceptionSeverity.error,
                   equals.span,
                   "Expected function body after '='."));
-              return new FunctionDeclaration(annotations, comments, id.span, id,
+              return new FunctionDeclaration(annotations, comments, span, id,
                   parameterList, asyncMarker, defaultBlock);
             }
           } else {
@@ -68,6 +74,8 @@ class FunctionParser {
                 asyncMarker,
                 defaultBlock);
           }
+        } else if (maybeLetBinding) {
+          return null;
         } else {
           parser.exceptions.add(new BullseyeException(
               BullseyeExceptionSeverity.error,
@@ -90,9 +98,10 @@ class FunctionParser {
   }
 
   Block parseBlock(FileSpan previousSpan) {
+    assert(previousSpan != null);
     var bindings = <LetBinding>[];
     var binding = parseLetBinding();
-    var span = binding?.span, lastSpan = span;
+    var span = binding?.span ?? previousSpan, lastSpan = span;
 
     while (binding != null) {
       span = span.expand(lastSpan = binding.span);
@@ -103,6 +112,7 @@ class FunctionParser {
     var returnValue = parser.expressionParser.parse();
 
     if (returnValue != null) {
+      span = span.expand(returnValue.span);
       return new Block([], span, bindings, returnValue);
     } else {
       parser.exceptions.add(new BullseyeException(
@@ -116,7 +126,7 @@ class FunctionParser {
 
   LetBinding parseLetBinding() {
     // Try to parse a function declaration.
-    var decl = parser.runOrBacktrack(parseFunctionDeclaration);
+    var decl = parser.runOrBacktrack(() => parseFunctionDeclaration(true));
 
     if (decl != null) {
       // Read the `in` keyword, used to separate values.
@@ -176,14 +186,15 @@ class FunctionParser {
     }
   }
 
-  ParameterList parseParameterList(FileSpan previousSpan) {
+  ParameterList parseParameterList(FileSpan previousSpan, bool mustNotBeEmpty) {
+    assert(previousSpan != null);
     var unit = parser.parseUnit();
     if (unit != null) {
       return new ParameterList(unit.comments, unit.span, []);
     } else {
       var parameters = <Parameter>[];
       var parameter = parseParameter();
-      var span = parameter?.span;
+      var span = previousSpan;
 
       while (parameter != null) {
         span = span.expand(parameter.span);
@@ -192,11 +203,15 @@ class FunctionParser {
       }
 
       if (parameters.isEmpty) {
-        parser.exceptions.add(new BullseyeException(
-            BullseyeExceptionSeverity.error,
-            previousSpan,
-            "Expected a list of parameters. If this function has no parameters, supply a '()' literal."));
-        return new ParameterList([], span, []);
+        if (!mustNotBeEmpty) {
+          return null;
+        } else {
+          parser.exceptions.add(new BullseyeException(
+              BullseyeExceptionSeverity.error,
+              previousSpan,
+              "Expected a list of parameters. If this function has no parameters, supply a '()' literal."));
+          return new ParameterList([], span, []);
+        }
       }
 
       return new ParameterList(parameters.first.comments, span, parameters);

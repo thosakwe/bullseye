@@ -19,6 +19,16 @@ class Parser extends ScannerIterator {
 
   CompilationUnit parse() => declarationParser.parseCompilationUnit();
 
+  @override
+  T runOrBacktrack<T>(f) {
+    var old = new List<BullseyeException>.from(exceptions);
+    var result = super.runOrBacktrack(f);
+    if (result == null) {
+      exceptions.removeWhere((e) => !old.contains(e));
+    }
+    return result;
+  }
+
   void markErrant([Token token]) {
     _errant.addLast(token ?? current);
   }

@@ -233,7 +233,7 @@ class BullseyeKernelExpressionCompiler {
         inferArgumentTypes(args, ref.asProcedure.function);
 
         // If this is top-level, return a static invocation
-        if (ref.asProcedure.canonicalName != null) {
+        if (ref.asProcedure.enclosingLibrary != null) {
           return new k.StaticInvocation(ref.asProcedure, args);
         } else {
           // Otherwise, return a method invocation of '.call'

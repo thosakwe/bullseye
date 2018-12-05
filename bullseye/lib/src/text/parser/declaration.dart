@@ -55,7 +55,7 @@ class DeclarationParser {
 
   TopLevelDeclaration parseTopLevelDeclaration() {
     // TODO: Other options...?
-    return parser.functionParser.parseFunctionDeclaration();
+    return parser.functionParser.parseFunctionDeclaration(false);
   }
 
   Directive parseDirective() {
