@@ -141,10 +141,25 @@ class ExpressionParser extends PrattParser<Expression> {
       }
     };
 
+    Expression member(Parser p, _, Expression left, Token token) {
+      if (p.peek()?.type == TokenType.id && p.moveNext()) {
+        var id = new Identifier([], p.current);
+        return new MemberExpression(left.comments,
+            left.span.expand(token.span).expand(id.span), left, id, token);
+      } else {
+        p.exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,
+            token.span, "Missing identifier after '.'."));
+        return null;
+      }
+    }
+
     addInfix(TokenType.times, arithmetic);
     addInfix(TokenType.div, arithmetic);
     addInfix(TokenType.mod, arithmetic);
     addInfix(TokenType.plus, arithmetic);
     addInfix(TokenType.minus, arithmetic);
+    addInfix(TokenType.dot, member);
+    addInfix(TokenType.nonNullDot, member);
+    addInfix(TokenType.nullableDot, member);
   }
 }
