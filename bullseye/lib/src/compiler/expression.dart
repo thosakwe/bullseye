@@ -15,6 +15,7 @@ class BullseyeKernelExpressionCompiler {
     if (ctx is NamedCallExpression) return compileNamedCall(ctx, scope);
     if (ctx is MemberExpression) return compileMember(ctx, scope);
     if (ctx is MemberCallExpression) return compileMemberCall(ctx, scope);
+    if (ctx is AwaitedExpression) return compileAwaited(ctx, scope);
     compiler.exceptions.add(new BullseyeException(
         BullseyeExceptionSeverity.error,
         ctx.span,
@@ -363,6 +364,18 @@ class BullseyeKernelExpressionCompiler {
       var args = compileArguments(ctx, scope);
       return compileCallInvocation(object, interfaceType, args, ctx.target.span,
           ctx.target.name.name, knownProcedure);
+    }
+  }
+
+  k.Expression compileAwaited(
+      AwaitedExpression ctx, SymbolTable<k.Expression> scope) {
+    var target = compile(ctx.target, scope);
+
+    if (target != null) {
+      return new k.AwaitExpression(target);
+    } else {
+      // Ostensibly, an error was already reported. Just return null.
+      return null;
     }
   }
 }

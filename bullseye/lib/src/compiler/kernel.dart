@@ -371,6 +371,20 @@ class BullseyeKernelCompiler {
 
     // Compile the return value
     var retVal = expressionCompiler.compile(returnValue, s);
+    var returnType = retVal.getStaticType(types);
+
+    // Create a Future if necessary
+    if (asyncMarker == k.AsyncMarker.Async) {
+      // Import `dart:async`.
+      var dartAsync = coreTypes.asyncLibrary;
+      library.addDependency(new k.LibraryDependency.import(dartAsync));
+
+      // Create a Future<X> type.
+      var base = types.unfutureType(returnType);
+      returnType = types.futureType(base);
+    } else if (asyncMarker == k.AsyncMarker.AsyncStar) {
+      // TODO: Do we need to unwrap this...?
+    }
 
     // Add parameters
     // TODO: Named parameters
@@ -389,7 +403,7 @@ class BullseyeKernelCompiler {
           positionalParameters: positional,
           namedParameters: named,
           requiredParameterCount: requiredCount,
-          returnType: types.nullType,
+          returnType: returnType,
           asyncMarker: asyncMarker);
     } else {
       body.add(new k.ReturnStatement(retVal));
@@ -404,7 +418,7 @@ class BullseyeKernelCompiler {
           positionalParameters: positional,
           namedParameters: named,
           requiredParameterCount: requiredCount,
-          returnType: retVal.getStaticType(types),
+          returnType: returnType,
           asyncMarker: asyncMarker);
     }
   }
