@@ -12,13 +12,13 @@ class ExpressionParser extends PrattParser<Expression> {
     if (target == null) return target;
 
     var args = <Argument>[];
-    var canParseWithoutName = true;
-    var arg = parseArgument(canParseWithoutName);
+    var canParsePositional = true;
+    var arg = parseArgument(canParsePositional);
 
     while (arg != null) {
-      canParseWithoutName = canParseWithoutName || arg is NamedArgument;
+      canParsePositional = canParsePositional && arg is! NamedArgument;
       args.add(arg);
-      arg = parseArgument(canParseWithoutName);
+      arg = parseArgument(canParsePositional);
     }
 
     if (args.isEmpty) {
@@ -36,7 +36,7 @@ class ExpressionParser extends PrattParser<Expression> {
     }
   }
 
-  Argument parseArgument(bool canParseWithoutName) {
+  Argument parseArgument(bool canParsePositional) {
     if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
       var id = new Identifier([], parser.current);
 
@@ -56,7 +56,7 @@ class ExpressionParser extends PrattParser<Expression> {
       } else {
         return new Argument(id);
       }
-    } else if (!canParseWithoutName) {
+    } else if (canParsePositional) {
       var expr = parse();
       if (expr == null) return null;
       return new Argument(expr);

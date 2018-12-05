@@ -22,8 +22,7 @@ abstract class PrattParser<T> {
     for (var entry in _infixParselets.entries) {
       if (parser.peek()?.type == entry.key) {
         _nextInfix = entry.value;
-        _lastPrecedence = i;
-        return _lastPrecedence = i;
+        return _lastPrecedence = i + 1;
       } else {
         i++;
       }
@@ -34,7 +33,7 @@ abstract class PrattParser<T> {
 
   T parse([int precedence = 0]) {
     var next = parser.peek();
-    if (_prefixParselets.containsKey(next.type) && parser.moveNext()) {
+    if (_prefixParselets.containsKey(next?.type) && parser.moveNext()) {
       var left = _prefixParselets[next.type](parser, next);
 
       while (
