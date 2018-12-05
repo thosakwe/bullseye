@@ -150,6 +150,37 @@ class BullseyeKernelExpressionCompiler {
     return interfaceType;
   }
 
+  /// Try to infer the types of any ParameterGet instances being passed as function arguments.
+  void inferArgumentTypes(k.Arguments args, k.FunctionNode function) {
+    int i = 0;
+
+    void infer(k.Expression expr, k.VariableDeclaration param) {
+      if (expr is ParameterGet) {
+        expr.type = param.type;
+      }
+    }
+
+    for (var arg in args.positional) {
+      try {
+        var param = function.positionalParameters[i++];
+        infer(arg, param);
+      } on RangeError {
+        // Ignore...
+      }
+    }
+
+    i = 0;
+
+    for (var arg in args.named) {
+      try {
+        var param = function.namedParameters[i++];
+        infer(arg.value, param);
+      } on RangeError {
+        // Ignore...
+      }
+    }
+  }
+
   k.Expression compileCallInvocation(
       k.Expression targetExpr,
       k.InterfaceType interfaceType,
@@ -172,26 +203,28 @@ class BullseyeKernelExpressionCompiler {
             "$interfaceType has no $type, and therefore cannot be instantiated."));
         return null;
       }
+
+      inferArgumentTypes(args, constructor.function);
       return new k.ConstructorInvocation(constructor, args);
     } else if (knownProcedure == null) {
       // Otherwise, just return a call.
       // If knownProcedure == null, we are NOT calling a member function.
-      if (knownProcedure == null) {
-        var vGet = targetExpr as k.VariableGet;
-        var ref = compiler.procedureReferences[vGet];
-        if (ref != null) {
-          return new k.StaticInvocation(ref.asProcedure, args);
-        } else {
-          // TODO: What if it's a variable...? (maybe make a static function for that?)
-          compiler.exceptions.add(new BullseyeException(
-              BullseyeExceptionSeverity.error,
-              span,
-              "'${vGet.variable.name}' is not a function, and cannot be invoked."));
-          return null;
-        }
+      var vGet = targetExpr as k.VariableGet;
+      var ref = compiler.procedureReferences[vGet];
+      if (ref != null) {
+        inferArgumentTypes(args, ref.asProcedure.function);
+        return new k.StaticInvocation(ref.asProcedure, args);
+      } else {
+        // TODO: What if it's a variable...? (maybe make a static function for that?)
+        compiler.exceptions.add(new BullseyeException(
+            BullseyeExceptionSeverity.error,
+            span,
+            "'${vGet.variable.name}' is not a function, and cannot be invoked."));
+        return null;
       }
     } else {
       // We ARE calling a member function.
+      inferArgumentTypes(args, knownProcedure.function);
       return new k.MethodInvocation.byReference(
           targetExpr, knownProcedure.name, args, knownProcedure.reference);
     }
