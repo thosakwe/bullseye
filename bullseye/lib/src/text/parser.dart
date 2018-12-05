@@ -36,16 +36,13 @@ class Parser extends ScannerIterator {
     if (peek()?.type == TokenType.lParen && moveNext()) {
       var lParen = current;
 
-      if (!moveNext()) {
+      if (peek()?.type == TokenType.rParen && moveNext()) {
+        return new UnitLiteral(lParen.span.expand(current.span));
+      } else if (done) {
         exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,
             lParen.span, "Expected ')' after '(', found end-of-file instead."));
-      } else if (current.type != TokenType.rParen) {
-        exceptions.add(new BullseyeException(
-            BullseyeExceptionSeverity.error,
-            lParen.span,
-            "Expected ')' after '(', found '${current.span.text}' instead."));
       } else {
-        return new UnitLiteral(lParen.span.expand(current.span));
+        movePrevious();
       }
     }
 

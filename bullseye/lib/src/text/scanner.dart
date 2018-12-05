@@ -6,6 +6,7 @@ import 'token_type.dart';
 
 class ScannerIterator extends BidirectionalIterator<Token> {
   final Scanner scanner;
+  Token _current;
   int _index = -1;
 
   ScannerIterator(this.scanner);
@@ -13,13 +14,7 @@ class ScannerIterator extends BidirectionalIterator<Token> {
   void reset() => _index = -1;
 
   @override
-  Token get current {
-    if (_index < 0 || _index >= scanner.tokens.length - 1) {
-      return null;
-    } else {
-      return scanner.tokens[_index];
-    }
-  }
+  Token get current => _current;
 
   bool get done {
     if (_index < scanner.tokens.length - 1) {
@@ -43,6 +38,7 @@ class ScannerIterator extends BidirectionalIterator<Token> {
       return false;
     } else {
       _index++;
+      _current = scanner.tokens[_index];
       return true;
     }
   }
