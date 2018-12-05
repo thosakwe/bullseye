@@ -58,9 +58,12 @@ class Block extends Node {
 }
 
 class BeginEndExpression extends Expression {
-  final Block block;
+  final List<LetBinding> letBindings;
+  final List<Expression> ignoredExpressions;
+  final Expression returnValue;
 
-  BeginEndExpression(List<Token> comments, FileSpan span, this.block)
+  BeginEndExpression(List<Token> comments, FileSpan span, this.letBindings,
+      this.ignoredExpressions, this.returnValue)
       : super(comments, span);
 }
 

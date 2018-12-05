@@ -142,6 +142,53 @@ class ExpressionParser extends PrattParser<Expression> {
         return null;
       }
     });
+    addPrefix(TokenType.begin, (p, token) {
+      var span = token.span, lastSpan = span;
+      var letBindings = <LetBinding>[];
+      var ignored = <Expression>[];
+
+      var letBinding = p.functionParser.parseLetBinding();
+      while (letBinding != null) {
+        letBindings.add(letBinding);
+        span = span.expand(lastSpan = letBinding.span);
+        letBinding = p.functionParser.parseLetBinding();
+      }
+
+      Expression returnValue, value = p.expressionParser.parse();
+
+      while (value != null) {
+        span = span.expand(lastSpan = value.span);
+        if (returnValue == null) {
+          returnValue = value;
+        } else {
+          ignored.add(returnValue);
+          returnValue = value;
+        }
+
+        if (p.peek()?.type != TokenType.semi || !p.moveNext()) {
+          break;
+        } else {
+          span = span.expand(lastSpan = p.current.span);
+          value = p.expressionParser.parse();
+        }
+      }
+
+      if (returnValue == null) {
+        p.exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,
+            lastSpan, "This block has no return value."));
+        returnValue = new NullLiteral([], token.span);
+      }
+
+      if (p.peek()?.type == TokenType.end && p.moveNext()) {
+        span = span.expand(p.current.span);
+      } else {
+        p.exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,
+            lastSpan, "Missing 'end' keyword at end of block."));
+      }
+
+      return new BeginEndExpression(
+          [], span, letBindings, ignored, returnValue);
+    });
   }
 
   void addInfixParselets() {

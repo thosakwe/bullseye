@@ -1,0 +1,5 @@
+let main () =
+    begin
+        let x = 2 in
+        x * 3
+    end

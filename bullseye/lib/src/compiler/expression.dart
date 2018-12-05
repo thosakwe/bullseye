@@ -16,6 +16,7 @@ class BullseyeKernelExpressionCompiler {
     if (ctx is MemberExpression) return compileMember(ctx, scope);
     if (ctx is MemberCallExpression) return compileMemberCall(ctx, scope);
     if (ctx is AwaitedExpression) return compileAwaited(ctx, scope);
+    if (ctx is BeginEndExpression) return compileBeginEnd(ctx, scope);
     compiler.exceptions.add(new BullseyeException(
         BullseyeExceptionSeverity.error,
         ctx.span,
@@ -384,5 +385,15 @@ class BullseyeKernelExpressionCompiler {
       // Ostensibly, an error was already reported. Just return null.
       return null;
     }
+  }
+
+  k.Expression compileBeginEnd(
+      BeginEndExpression ctx, SymbolTable<k.Expression> scope) {
+    // TODO: Apply current async marker
+    var fnNode = compiler.compileFunctionBody([], ctx.letBindings,
+        ctx.ignoredExpressions, ctx.returnValue, k.AsyncMarker.Sync, scope);
+    var closure = new k.FunctionExpression(fnNode);
+    return new k.MethodInvocation(
+        closure, new k.Name('call'), new k.Arguments([]));
   }
 }

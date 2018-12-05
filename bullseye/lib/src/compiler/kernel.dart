@@ -314,6 +314,7 @@ class BullseyeKernelCompiler {
     var function = compileFunctionBody(
         ctx.parameterList.parameters,
         ctx.body.letBindings,
+        [],
         ctx.body.returnValue,
         ctx.asyncMarker,
         scope ?? this.scope);
@@ -328,6 +329,7 @@ class BullseyeKernelCompiler {
   k.FunctionNode compileFunctionBody(
       List<Parameter> parameters,
       Iterable<LetBinding> letBindings,
+      List<Expression> ignoredExpressions,
       Expression returnValue,
       k.AsyncMarker asyncMarker,
       SymbolTable<k.Expression> scope) {
@@ -392,6 +394,12 @@ class BullseyeKernelCompiler {
 
     // Compile the return value
     var retVal = expressionCompiler.compile(returnValue, s);
+
+    if (retVal == null) {
+      // An error has already been emitted, just return null in the meantime.
+      retVal = new k.NullLiteral();
+    }
+
     var returnType = retVal.getStaticType(types);
 
     // Create a Future if necessary
