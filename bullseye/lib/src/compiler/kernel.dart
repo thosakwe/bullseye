@@ -66,13 +66,14 @@ class BullseyeKernelCompiler {
 
   BullseyeKernelCompiler(this.compilationUnit, this.parser) {
     var ctx = compilationUnit;
-    var reference = new k.Reference()
-      ..canonicalName =
-          k.CanonicalName.root().getChildFromUri(ctx.span.sourceUrl);
+    // var reference = k.CanonicalName.root()
+    //     .getChildFromUri(ctx.span.sourceUrl)
+    //     .getReference();
     expressionCompiler = new BullseyeKernelExpressionCompiler(this);
 
+    // TODO: This used to have a reference arg
     library = new k.Library(compilationUnit.span.sourceUrl,
-        reference: reference, fileUri: compilationUnit.span.sourceUrl);
+        fileUri: compilationUnit.span.sourceUrl);
     libraries.add(library);
 
     var ss = parser.scanner.scanner;
@@ -222,8 +223,12 @@ class BullseyeKernelCompiler {
   }
 
   k.Reference getReference(String name) {
-    return new k.Reference()
-      ..canonicalName = library.reference.canonicalName.getChild(name);
+    if (library.reference.canonicalName != null) {
+      return new k.Reference()
+        ..canonicalName = library.reference.canonicalName.getChild(name);
+    } else {
+      return new k.Reference();
+    }
   }
 
   void compile() {
