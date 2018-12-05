@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:bullseye/bullseye.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
+import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/class_hierarchy.dart' as k;
 import 'package:kernel/core_types.dart' as k;
 import 'package:kernel/kernel.dart' as k;
 import 'package:kernel/library_index.dart' as k;
 import 'package:kernel/type_environment.dart' as k;
+import 'package:package_resolver/package_resolver.dart';
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:symbol_table/symbol_table.dart';
@@ -40,6 +44,7 @@ Future<k.Component> compileBullseyeToKernel(String source, sourceUrl,
 
 class BullseyeKernelCompiler {
   final List<BullseyeException> exceptions = [];
+  final Map<Uri, k.Library> loadedLibraries = {};
   final List<k.Library> libraries = [];
   final Map<k.VariableGet, k.Reference> procedureReferences = {};
   final Map<Uri, k.Source> uriToSource = {};
@@ -94,25 +99,77 @@ class BullseyeKernelCompiler {
     classHierarchy = new k.ClassHierarchy(vmPlatform);
     libraryIndex = new k.LibraryIndex.all(vmPlatform);
     types = new k.TypeEnvironment(coreTypes, classHierarchy, strongMode: true);
+
+    // Read all imports
     await importLibrary(Uri.parse('dart:core'), compilationUnit.span);
+    for (var directive in compilationUnit.directives) {
+      if (directive is ImportDirective) {
+        await importLibrary(
+          directive.toUri(),
+          directive.url.span,
+          alias: directive.alias?.name,
+          show: directive.show.map((s) => s.name).toList(),
+          hide: directive.hide.map((s) => s.name).toList(),
+        );
+      }
+    }
   }
 
-  Future importLibrary(Uri uri, FileSpan span, {String alias}) async {
-    // TODO: Alias support, show, hide
-    if (_imported.add(uri)) {
-      var lib = libraryIndex.tryGetLibrary(uri.toString());
+  Future<k.Library> loadLibrary(Uri uri) async {
+    var lib = libraryIndex.tryGetLibrary(uri.toString());
 
-      if (lib != null) {
+    if (lib != null) {
+      return lib;
+    } else if (loadedLibraries.containsKey(uri)) {
+      return loadedLibraries[lib];
+    } else {
+      var resolved = await PackageResolver.current.resolveUri(uri);
+      k.Component component;
+
+      if (p.extension(resolved.path) == '.dart') {
+        // Compile it via FASTA!
+        var text = await new File.fromUri(resolved).readAsString();
+        component =
+            await compileScript(text, fileName: p.basename(resolved.path));
+
+        if (component != null) {
+          for (var lib in component.libraries) {
+            lib.fileUri = resolved;
+          }
+        } else {
+          throw new StateError('Compilation of file $uri to IR failed.');
+        }
+      } else if (p.extension(resolved.path) != '.dill') {
+        throw new UnsupportedError('Cannot import file $uri.');
+      }
+
+      if (component.libraries.isNotEmpty) {
+        return loadedLibraries[uri] = component.libraries.first;
       } else {
-        // TODO: How to import...? (probably use package_resolver)
-        // (Which ostensibly will involve compiling said dep)
-        throw new UnimplementedError(
-            'Cannot yet import external libraries. You tried to import $uri.');
+        throw new StateError(
+            'File $uri does not contain any Dart or Bullseye libraries.');
+      }
+    }
+  }
+
+  Future importLibrary(Uri uri, FileSpan span,
+      {String alias,
+      List<String> show = const [],
+      List<String> hide = const []}) async {
+    // TODO: Alias support (use a LibraryWrapper expression)
+    if (_imported.add(uri)) {
+      var lib = await loadLibrary(uri);
+
+      bool canImport(String name) {
+        if (show.isNotEmpty && !show.contains(name)) return false;
+        if (hide.isNotEmpty && hide.contains(name)) return false;
+        return true;
       }
 
       // Copy in all public symbols from the library...
       for (var clazz in lib.classes) {
         try {
+          if (!canImport(clazz.name)) continue;
           var w = new TypeWrapper(clazz.thisType, clazz: clazz);
           scope.create(clazz.name, value: w, constant: true);
         } on StateError catch (e) {
@@ -123,6 +180,7 @@ class BullseyeKernelCompiler {
 
       for (var type in lib.typedefs) {
         try {
+          if (!canImport(type.name)) continue;
           var w = new TypeWrapper(type.type, typedef$: type);
           scope.create(type.name, value: w, constant: true);
         } on StateError catch (e) {
@@ -133,6 +191,7 @@ class BullseyeKernelCompiler {
 
       for (var member in lib.members) {
         var name = member.name.name;
+        if (!canImport(name)) continue;
 
         if (!name.startsWith('_')) {
           try {
@@ -142,12 +201,13 @@ class BullseyeKernelCompiler {
             scope.create(name, value: vGet, constant: true);
             if (member is k.Procedure)
               procedureReferences[vGet] = ref..node = member;
-          } on StateError {
-            var existing = scope.resolve(name).value.location.file;
+          } on StateError catch (e) {
+            var existing = scope.resolve(name)?.value?.location?.file;
+            var message = existing != null
+                ? "The symbol '$name' is imported from libraries $uri and $existing, and therefore is ambiguous."
+                : 'Error when importing $uri: ${e.message}';
             exceptions.add(new BullseyeException(
-                BullseyeExceptionSeverity.error,
-                span,
-                "The symbol '$name' is imported from libraries $uri and $existing, and therefore is ambiguous."));
+                BullseyeExceptionSeverity.error, span, message));
           }
         }
       }

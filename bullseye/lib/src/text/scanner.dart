@@ -267,6 +267,7 @@ class StringModeScanner extends SubScannerBase {
       scanner.flush();
       s.scan(token.span.text);
       scanner.tokens.add(token);
+      scanner.stateStack.removeFirst();
       return token;
     }
 

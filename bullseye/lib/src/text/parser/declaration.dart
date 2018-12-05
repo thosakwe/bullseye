@@ -13,6 +13,7 @@ class DeclarationParser {
 
     while (dir != null) {
       dirs.add(dir);
+      parser.flush();
       dir = parseDirective();
     }
 
@@ -78,6 +79,7 @@ class DeclarationParser {
         // Look for an alias
         if (parser.peek()?.type == TokenType.as$ && parser.moveNext()) {
           var as$ = parser.current;
+          span = span.expand(as$.span);
 
           if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
             alias = new Identifier([], parser.current);
@@ -94,11 +96,13 @@ class DeclarationParser {
                 .contains(parser.peek()?.type) &&
             parser.moveNext()) {
           var token = parser.current;
+          span = span.expand(token.span);
           var out = parser.current.type == TokenType.hide ? hide : show;
           var added = 0;
 
           while (parser.peek()?.type == TokenType.id && parser.moveNext()) {
             var id = new Identifier([], parser.current);
+          span = span.expand(id.span);
             added++;
             out.add(id);
 

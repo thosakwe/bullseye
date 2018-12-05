@@ -25,6 +25,7 @@ class Parser extends ScannerIterator {
 
   void flush() {
     if (_errant.isNotEmpty) {
+      print(_errant);
       var span = _errant.map((t) => t.span).reduce((a, b) => a.expand(b));
       _errant.clear();
       exceptions.add(new BullseyeException(
