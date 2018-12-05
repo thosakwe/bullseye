@@ -73,6 +73,15 @@ class ExpressionParser extends PrattParser<Expression> {
   }
 
   void addPrefixParselets() {
+    PrefixParselet<Expression> parseString(TokenType type) {
+      return (p, token) {
+        return p.parseString(token);
+      };
+    }
+
+    addString(TokenType type) => addPrefix(type, parseString(type));
+    addString(TokenType.doubleQuote);
+    addString(TokenType.singleQuote);
     addPrefix(
       TokenType.double$,
       (p, token) => new DoubleLiteral(token, [], token.span),

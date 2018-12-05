@@ -48,4 +48,83 @@ class Parser extends ScannerIterator {
 
     return null;
   }
+
+  StringLiteral parseString([Token token]) {
+    if (token == null) {
+      // TODO: Raw Strings, triple quotes
+      if (peek()?.type == TokenType.doubleQuote && moveNext()) {
+        token = current;
+      } else if (peek()?.type == TokenType.singleQuote && moveNext()) {
+        token = current;
+      } else {
+        return null;
+      }
+    }
+
+    var parts = <StringPart>[];
+    var span = token.span, lastSpan = span;
+    var part = parseStringPart();
+
+    while (part != null) {
+      parts.add(part);
+      span = span.expand(lastSpan = part.span);
+      part = parseStringPart();
+    }
+
+    // Expect closing...
+    if (peek()?.type == token.type && moveNext()) {
+      var out = new StringLiteral([], span.expand(current.span), parts);
+
+      // Add adjacent
+      var next = parseString();
+      while (next != null) {
+        out = new StringLiteral(out.comments, span,
+            new List<StringPart>.from(out.parts)..addAll(next.parts));
+        next = parseString();
+      }
+
+      return out;
+    } else {
+      exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,
+          lastSpan, "Unterminated string literal; expected '${token.span}'."));
+      return null;
+    }
+  }
+
+  StringPart parseStringPart() {
+    var la = peek();
+
+    if (la?.type == TokenType.textStringPart && moveNext()) {
+      return new TextStringPart(current.span);
+    } else if (la?.type == TokenType.escapeStringPart && moveNext()) {
+      return new EscapeStringPart(current);
+    } else if (la?.type == TokenType.hexStringPart && moveNext()) {
+      return new HexStringPart(current);
+    } else if (la?.type == TokenType.stringSingleInterpPart && moveNext()) {
+      var name = la.span.text.substring(1);
+      var id = new Identifier([], la, name);
+      return new InterpolationStringPart(id);
+    } else if (la?.type == TokenType.stringInterpStart) {
+      var expr = expressionParser.parse();
+
+      if (expr != null) {
+        if (peek()?.type != TokenType.rCurly || !moveNext()) {
+          exceptions.add(new BullseyeException(
+              BullseyeExceptionSeverity.error,
+              expr.span,
+              "Missing '}' after expression in string interpolation."));
+        }
+
+        return new InterpolationStringPart(expr);
+      } else {
+        exceptions.add(new BullseyeException(
+            BullseyeExceptionSeverity.error,
+            la.span,
+            "Missing expression for string interpolation after '\$'."));
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
 }

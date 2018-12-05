@@ -17,10 +17,12 @@ class Annotation extends Node {
 
 class Identifier extends Expression {
   final Token token;
+  String _name;
 
-  Identifier(List<Token> comments, this.token) : super(comments, token.span);
+  Identifier(List<Token> comments, this.token, [this._name])
+      : super(comments, token.span);
 
-  String get name => token.span.text;
+  String get name => _name ?? token.span.text;
 }
 
 class ParenthesizedExpression extends Expression {
