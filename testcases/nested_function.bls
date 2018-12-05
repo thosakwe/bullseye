@@ -1,0 +1,3 @@
+let main () =
+    let timesTwo x = x * 2 in
+    timesTwo 2

@@ -308,12 +308,17 @@ class BullseyeKernelCompiler {
     }
   }
 
-  k.Procedure compileFunctionDeclaration(FunctionDeclaration ctx) {
+  k.Procedure compileFunctionDeclaration(FunctionDeclaration ctx,
+      [SymbolTable<k.Expression> scope, k.Reference ref]) {
     var name = new k.Name(ctx.name.name);
-    var function = compileFunctionBody(ctx.parameterList.parameters,
-        ctx.body.letBindings, ctx.body.returnValue, ctx.asyncMarker);
+    var function = compileFunctionBody(
+        ctx.parameterList.parameters,
+        ctx.body.letBindings,
+        ctx.body.returnValue,
+        ctx.asyncMarker,
+        scope ?? this.scope);
     if (function == null) return null;
-    var ref = getReference(ctx.name.name);
+    ref ??= getReference(ctx.name.name);
     var fn = new k.Procedure(name, k.ProcedureKind.Method, function,
         isStatic: true, reference: ref, fileUri: ctx.span.sourceUrl);
     ref.node = fn;
@@ -324,7 +329,8 @@ class BullseyeKernelCompiler {
       List<Parameter> parameters,
       Iterable<LetBinding> letBindings,
       Expression returnValue,
-      k.AsyncMarker asyncMarker) {
+      k.AsyncMarker asyncMarker,
+      SymbolTable<k.Expression> scope) {
     var s = scope.createChild();
     var body = <k.Statement>[];
     var positional = <k.VariableDeclaration>[];
@@ -351,17 +357,32 @@ class BullseyeKernelCompiler {
 
     for (var binding in letBindings) {
       try {
-        // Register within the current scope.
-        var value = expressionCompiler.compile(binding.value, s);
-        if (value == null) return null;
-        var variable = new k.VariableDeclaration(binding.identifier.name,
-            type: value.getStaticType(types));
-        var vGet = new k.VariableGet(variable);
-        scope.create(binding.identifier.name, value: vGet, constant: true);
+        if (binding.functionDeclaration != null) {
+          // Compile the function...
+          var fn = compileFunctionDeclaration(
+              binding.functionDeclaration, s, new k.Reference());
+          var variable = new k.VariableDeclaration(
+              binding.functionDeclaration.name.name,
+              type: fn.function.functionType);
+          var vGet = new k.VariableGet(variable);
+          var decl = new k.FunctionDeclaration(variable, fn.function);
+          body.add(decl);
+          procedureReferences[vGet] = fn.reference..node = fn;
+          s.create(binding.functionDeclaration.name.name,
+              value: vGet, constant: true);
+        } else {
+          // Register within the current scope.
+          var value = expressionCompiler.compile(binding.value, s);
+          if (value == null) return null;
+          var variable = new k.VariableDeclaration(binding.identifier.name,
+              type: value.getStaticType(types));
+          var vGet = new k.VariableGet(variable);
+          s.create(binding.identifier.name, value: vGet, constant: true);
 
-        // Then, just emit it within the body.
-        body.add(new k.VariableDeclaration(binding.identifier.name,
-            initializer: value, type: variable.type));
+          // Then, just emit it within the body.
+          body.add(new k.VariableDeclaration(binding.identifier.name,
+              initializer: value, type: variable.type));
+        }
       } on StateError catch (e) {
         exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,
             binding.identifier.span, e.message));

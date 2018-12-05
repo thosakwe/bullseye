@@ -231,7 +231,14 @@ class BullseyeKernelExpressionCompiler {
       var ref = compiler.procedureReferences[vGet];
       if (ref != null) {
         inferArgumentTypes(args, ref.asProcedure.function);
-        return new k.StaticInvocation(ref.asProcedure, args);
+
+        // If this is top-level, return a static invocation
+        if (ref.asProcedure.canonicalName != null) {
+          return new k.StaticInvocation(ref.asProcedure, args);
+        } else {
+          // Otherwise, return a method invocation of '.call'
+          return new k.MethodInvocation(vGet, new k.Name('call'), args);
+        }
       } else {
         // TODO: What if it's a variable...? (maybe make a static function for that?)
         compiler.exceptions.add(new BullseyeException(
