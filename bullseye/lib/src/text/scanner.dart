@@ -250,7 +250,7 @@ class StringModeScanner extends SubScannerBase {
     new RegExp(r'\\[Xx]([A-Fa-f0-9][A-Fa-f0-9])'): TokenType.hexStringPart,
     new RegExp(r'\\[Uu]([A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9])'): TokenType.unicodeStringPart,
     new RegExp(r'\\[Uu]{([A-Fa-f0-9]+)}'): TokenType.unicodeStringPart,
-    new RegExp(r'\$([A-Za-z_]|\$)([A-Za-z0-9_]|\$)*'):
+    new RegExp(r'\$([A-Za-z_])([A-Za-z0-9_])*'):
         TokenType.stringSingleInterpPart,
   };
 

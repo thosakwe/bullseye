@@ -2,11 +2,29 @@ import 'package:bullseye/bullseye.dart';
 import 'package:source_span/source_span.dart';
 
 class CompilationUnit extends Node {
+  final List<Directive> directives;
   final List<TopLevelDeclaration> topLevelDeclarations;
 
-  CompilationUnit(
-      List<Token> comments, FileSpan span, this.topLevelDeclarations)
+  CompilationUnit(List<Token> comments, FileSpan span, this.directives,
+      this.topLevelDeclarations)
       : super(comments, span);
+}
+
+abstract class Directive extends AnnotatedNode {
+  Directive(List<Annotation> annotations, List<Token> comments, FileSpan span)
+      : super(annotations, comments, span);
+}
+
+class ImportDirective extends Directive {
+  final StringLiteral url;
+  final Identifier alias;
+  final List<Identifier> hide, show;
+
+  ImportDirective(List<Annotation> annotations, List<Token> comments,
+      FileSpan span, this.url, this.alias, this.hide, this.show)
+      : super(annotations, comments, span);
+
+  Uri toUri() => Uri.parse(url.constantValue);
 }
 
 abstract class TopLevelDeclaration extends AnnotatedNode {
