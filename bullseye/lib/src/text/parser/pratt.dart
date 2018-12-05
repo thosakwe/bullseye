@@ -38,7 +38,7 @@ abstract class PrattParser<T> {
       var left = _prefixParselets[next.type](parser, next);
 
       while (
-          left != null && precedence <= _nextPrecedence && parser.moveNext()) {
+          left != null && precedence < _nextPrecedence && parser.moveNext()) {
         left = _nextInfix(parser, _lastPrecedence, left, parser.current);
       }
 

@@ -11,20 +11,17 @@ abstract class BinaryExpression extends Expression {
       : super(comments, span);
 }
 
+// TODO: Should this really exist?
+/*
 class ExponentialExpression extends BinaryExpression {
   ExponentialExpression(List<Token> comments, FileSpan span, Expression left,
       Expression right, Token op)
       : super(comments, span, left, right, op);
 }
+*/
 
-class MulDivModExpression extends BinaryExpression {
-  MulDivModExpression(List<Token> comments, FileSpan span, Expression left,
-      Expression right, Token op)
-      : super(comments, span, left, right, op);
-}
-
-class AddSubExpression extends BinaryExpression {
-  AddSubExpression(List<Token> comments, FileSpan span, Expression left,
+class ArithmeticExpression extends BinaryExpression {
+  ArithmeticExpression(List<Token> comments, FileSpan span, Expression left,
       Expression right, Token op)
       : super(comments, span, left, right, op);
 }

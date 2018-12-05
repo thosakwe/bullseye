@@ -3,57 +3,51 @@ import 'package:source_span/source_span.dart';
 import 'expression.dart';
 
 abstract class CallExpression extends Expression {
-  final List<Expression> positionalArguments;
+  final List<Argument> arguments;
 
-  final List<NamedArgument> namedArguments;
-
-  CallExpression(List<Token> comments, FileSpan span, this.positionalArguments,
-      this.namedArguments)
+  CallExpression(List<Token> comments, FileSpan span, this.arguments)
       : super(comments, span);
 }
 
-class NamedArgument extends Node {
-  final Identifier name;
+class Argument extends Node {
   final Expression expression;
 
-  NamedArgument(List<Token> comments, FileSpan span, this.name, this.expression)
+  Argument._(List<Token> comments, FileSpan span, this.expression)
       : super(comments, span);
+
+  factory Argument(Expression expression) {
+    return new Argument._(expression.comments, expression.span, expression);
+  }
+}
+
+class NamedArgument extends Argument {
+  final Identifier name;
+
+  NamedArgument(
+      List<Token> comments, FileSpan span, this.name, Expression expression)
+      : super._(comments, span, expression);
 }
 
 class MemberCallExpression extends CallExpression {
-  final Expression object;
-  final Identifier name;
+  final MemberExpression target;
 
-  MemberCallExpression(
-      List<Token> comments,
-      FileSpan span,
-      List<Expression> positionalArguments,
-      List<NamedArgument> namedArguments,
-      this.object,
-      this.name)
-      : super(comments, span, positionalArguments, namedArguments);
+  MemberCallExpression(List<Token> comments, FileSpan span,
+      List<Argument> arguments, this.target)
+      : super(comments, span, arguments);
 }
 
 class NamedCallExpression extends CallExpression {
   final Identifier name;
 
   NamedCallExpression(
-      List<Token> comments,
-      FileSpan span,
-      List<Expression> positionalArguments,
-      List<NamedArgument> namedArguments,
-      this.name)
-      : super(comments, span, positionalArguments, namedArguments);
+      List<Token> comments, FileSpan span, List<Argument> arguments, this.name)
+      : super(comments, span, arguments);
 }
 
 class IndirectCallExpression extends CallExpression {
   final Expression callee;
 
-  IndirectCallExpression(
-      List<Token> comments,
-      FileSpan span,
-      List<Expression> positionalArguments,
-      List<NamedArgument> namedArguments,
-      this.callee)
-      : super(comments, span, positionalArguments, namedArguments);
+  IndirectCallExpression(List<Token> comments, FileSpan span,
+      List<Argument> arguments, this.callee)
+      : super(comments, span, arguments);
 }

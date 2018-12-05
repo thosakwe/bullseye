@@ -10,7 +10,7 @@ class BullseyeKernelExpressionCompiler {
   k.Expression compile(Expression ctx, SymbolTable<k.Expression> scope) {
     if (ctx is Literal) return compileLiteral(ctx);
     if (ctx is Identifier) return compileIdentifier(ctx, scope);
-    if (ctx is AddSubExpression) return compileAddSub(ctx, scope);
+    if (ctx is BinaryExpression) return compileBinary(ctx, scope);
     throw new UnsupportedError('Cannot compile expression $ctx');
   }
 
@@ -43,8 +43,8 @@ class BullseyeKernelExpressionCompiler {
     }
   }
 
-  k.Expression compileAddSub(
-      AddSubExpression ctx, SymbolTable<k.Expression> scope) {
+  k.Expression compileBinary(
+      BinaryExpression ctx, SymbolTable<k.Expression> scope) {
     var left = compile(ctx.left, scope);
     if (left == null) return null;
     var right = compile(ctx.right, scope);
