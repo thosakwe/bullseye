@@ -9,7 +9,7 @@ class BullseyeKernelExpressionCompiler {
   BullseyeKernelExpressionCompiler(this.compiler);
 
   k.Expression compile(Expression ctx, SymbolTable<k.Expression> scope) {
-    if (ctx is Literal) return compileLiteral(ctx);
+    if (ctx is Literal) return compileLiteral(ctx, scope);
     if (ctx is Identifier) return compileIdentifier(ctx, scope);
     if (ctx is BinaryExpression) return compileBinary(ctx, scope);
     if (ctx is NamedCallExpression) return compileNamedCall(ctx, scope);
@@ -21,7 +21,7 @@ class BullseyeKernelExpressionCompiler {
     return null;
   }
 
-  k.Expression compileLiteral(Literal ctx) {
+  k.Expression compileLiteral(Literal ctx, SymbolTable<k.Expression> scope) {
     if (ctx is NullLiteral) {
       return new k.NullLiteral();
     } else if (ctx is NumberLiteral<int>) {
@@ -30,6 +30,25 @@ class BullseyeKernelExpressionCompiler {
       return new k.DoubleLiteral(ctx.constantValue);
     } else if (ctx is BoolLiteral) {
       return new k.BoolLiteral(ctx.constantValue);
+    } else if (ctx is StringLiteral) {
+      if (ctx.hasConstantValue) {
+        return new k.StringLiteral(ctx.constantValue);
+      } else {
+        var parts = <k.Expression>[];
+
+        for (var part in ctx.parts) {
+          if (part is TextStringPart) {
+            parts.add(new k.StringLiteral(part.text));
+          } else if (part is InterpolationStringPart) {
+            parts.add(compile(part.expression, scope));
+          } else {
+            throw new UnsupportedError(
+                'Unsupported string part $part in compiler');
+          }
+        }
+
+        return new k.StringConcatenation(parts);
+      }
     }
 
     compiler.exceptions.add(new BullseyeException(

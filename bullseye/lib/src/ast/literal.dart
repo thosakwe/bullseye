@@ -94,8 +94,17 @@ class DoubleScientificLiteral extends NumberLiteral<double> {
 
 class StringLiteral extends Literal<String> {
   final List<StringPart> parts;
+
   StringLiteral(List<Token> comments, FileSpan span, this.parts)
       : super(comments, span);
+
+  @override
+  bool get hasConstantValue => !parts.any((s) => s is InterpolationStringPart);
+
+  @override
+  String get constantValue => !hasConstantValue
+      ? null
+      : parts.map((s) => (s as TextStringPart).text).join();
 }
 
 abstract class StringPart {
