@@ -6,10 +6,9 @@ class TypeParser extends PrattParser<TypeNode> {
     init();
   }
 
-  TypeDeclaration parseTypeDeclaration() {
-    // TODO: annotations + comments
+  TypeDeclaration parseTypeDeclaration(List<Token> comments) {
+    // TODO: annotations
     var annotations = <Annotation>[];
-    var comments = <Token>[];
 
     if (parser.peek()?.type == TokenType.type && parser.moveNext()) {
       var kw = parser.current;

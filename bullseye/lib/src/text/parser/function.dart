@@ -7,12 +7,12 @@ class FunctionParser {
 
   FunctionParser(this.parser);
 
-  FunctionDeclaration parseFunctionDeclaration(bool maybeLetBinding) {
+  FunctionDeclaration parseFunctionDeclaration(
+      List<Token> comments, bool maybeLetBinding) {
     if (parser.peek()?.type == TokenType.let && parser.moveNext()) {
-      // TODO: Annotations  + comments
+      // TODO: Annotations
       var let = parser.current;
       var annotations = <Annotation>[];
-      var comments = <Token>[];
 
       if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
         var id = new Identifier([], parser.current);
@@ -126,7 +126,8 @@ class FunctionParser {
 
   LetBinding parseLetBinding() {
     // Try to parse a function declaration.
-    var decl = parser.runOrBacktrack(() => parseFunctionDeclaration(true));
+    var decl = parser.runOrBacktrack(
+        () => parseFunctionDeclaration(parser.parseComments(), true));
 
     if (decl != null) {
       // Read the `in` keyword, used to separate values.

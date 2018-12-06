@@ -22,6 +22,22 @@ class Parser extends ScannerIterator {
   CompilationUnit parse() => declarationParser.parseCompilationUnit();
 
   @override
+  bool moveNext() {
+    parseComments();
+    return super.moveNext();
+  }
+
+  List<Token> parseComments() {
+    var comments = <Token>[];
+
+    while (super.peek()?.type == TokenType.comment && super.moveNext()) {
+      comments.add(current);
+    }
+
+    return comments;
+  }
+
+  @override
   T runOrBacktrack<T>(f) {
     var old = new List<BullseyeException>.from(exceptions);
     var result = super.runOrBacktrack(f);
@@ -32,7 +48,7 @@ class Parser extends ScannerIterator {
   }
 
   void markErrant([Token token]) {
-    _errant.addLast(token ?? current);
+    if (token?.type != TokenType.comment) _errant.addLast(token ?? current);
   }
 
   void flush() {

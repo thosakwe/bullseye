@@ -12,14 +12,16 @@ class DeclarationParser {
     var dir = parseDirective();
 
     while (dir != null) {
+      parser.parseComments();
       dirs.add(dir);
       parser.flush();
       dir = parseDirective();
     }
 
     while (!parser.done) {
+      var comments = parser.parseComments();
       var token = parser.peek();
-      var d = parseTopLevelDeclaration();
+      var d = parseTopLevelDeclaration(comments);
 
       if (d != null) {
         decl.add(d);
@@ -53,10 +55,10 @@ class DeclarationParser {
     }
   }
 
-  TopLevelDeclaration parseTopLevelDeclaration() {
+  TopLevelDeclaration parseTopLevelDeclaration(List<Token> comments) {
     // TODO: Other options...?
-    return parser.functionParser.parseFunctionDeclaration(false) ??
-        parser.typeParser.parseTypeDeclaration();
+    return parser.functionParser.parseFunctionDeclaration(comments, false) ??
+        parser.typeParser.parseTypeDeclaration(comments);
   }
 
   Directive parseDirective() {
