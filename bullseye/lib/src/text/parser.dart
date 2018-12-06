@@ -7,6 +7,7 @@ class Parser extends ScannerIterator {
   DeclarationParser declarationParser;
   ExpressionParser expressionParser;
   FunctionParser functionParser;
+  TypeParser typeParser;
 
   final Queue<Token> _errant = new Queue();
 
@@ -14,6 +15,7 @@ class Parser extends ScannerIterator {
     declarationParser = new DeclarationParser(this);
     expressionParser = new ExpressionParser(this);
     functionParser = new FunctionParser(this);
+    typeParser = new TypeParser(this);
     exceptions.addAll(scanner.exceptions);
   }
 

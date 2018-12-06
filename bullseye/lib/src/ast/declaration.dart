@@ -34,6 +34,15 @@ abstract class TopLevelDeclaration extends AnnotatedNode {
       : super(annotations, comments, span);
 }
 
+class TypeDeclaration extends TopLevelDeclaration {
+  final Identifier name;
+  final TypeNode type;
+
+  TypeDeclaration(List<Annotation> annotations, List<Token> comments,
+      FileSpan span, this.name, this.type)
+      : super(annotations, comments, span);
+}
+
 class LetBinding extends Node {
   final Identifier identifier;
   final Expression value;

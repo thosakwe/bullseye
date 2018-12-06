@@ -55,7 +55,8 @@ class DeclarationParser {
 
   TopLevelDeclaration parseTopLevelDeclaration() {
     // TODO: Other options...?
-    return parser.functionParser.parseFunctionDeclaration(false);
+    return parser.functionParser.parseFunctionDeclaration(false) ??
+        parser.typeParser.parseTypeDeclaration();
   }
 
   Directive parseDirective() {
@@ -102,7 +103,7 @@ class DeclarationParser {
 
           while (parser.peek()?.type == TokenType.id && parser.moveNext()) {
             var id = new Identifier([], parser.current);
-          span = span.expand(id.span);
+            span = span.expand(id.span);
             added++;
             out.add(id);
 
