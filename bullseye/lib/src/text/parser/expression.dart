@@ -72,6 +72,41 @@ class ExpressionParser extends PrattParser<Expression> {
     }
   }
 
+  FunctionExpressionParameter parseFunctionExpressionParameter() {
+    // TODO: Annotations
+    // TODO: default values
+    var annotations = <Annotation>[];
+
+    if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
+      var name = new Identifier([], parser.current);
+
+      if (parser.peek()?.type == TokenType.colon && parser.moveNext()) {
+        var colon = parser.current;
+        var type = parser.typeParser.parse();
+
+        if (type != null) {
+          var span = name.span.expand(colon.span).expand(type.span);
+          return new FunctionExpressionParameter(
+              annotations, [], span, name, type);
+        } else {
+          parser.exceptions.add(new BullseyeException(
+              BullseyeExceptionSeverity.error,
+              colon.span,
+              "Missing type after ':'."));
+          return null;
+        }
+      } else {
+        parser.exceptions.add(new BullseyeException(
+            BullseyeExceptionSeverity.error,
+            name.span,
+            "Missing ':' after identifier '${name.name}'."));
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
+
   void addPrefixParselets() {
     PrefixParselet<Expression> parseString(TokenType type) {
       return (p, token) {

@@ -1,4 +1,5 @@
 import 'package:bullseye/bullseye.dart';
+import 'package:kernel/ast.dart' as k;
 import 'package:source_span/source_span.dart';
 import 'node.dart';
 
@@ -44,4 +45,23 @@ class NonNullCoercedExpression extends Expression {
 
   NonNullCoercedExpression(List<Token> comments, FileSpan span, this.target)
       : super(comments, span);
+}
+
+class FunctionExpression extends Expression {
+  final List<FunctionExpressionParameter> parameters;
+  final k.AsyncMarker asyncMarker;
+  final Expression returnValue;
+
+  FunctionExpression(List<Token> comments, FileSpan span, this.parameters,
+      this.asyncMarker, this.returnValue)
+      : super(comments, span);
+}
+
+class FunctionExpressionParameter extends AnnotatedNode {
+  final Identifier name;
+  final TypeNode type;
+
+  FunctionExpressionParameter(List<Annotation> annotations,
+      List<Token> comments, FileSpan span, this.name, this.type)
+      : super(annotations, comments, span);
 }

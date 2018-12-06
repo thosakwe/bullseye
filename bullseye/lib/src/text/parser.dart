@@ -22,6 +22,12 @@ class Parser extends ScannerIterator {
   CompilationUnit parse() => declarationParser.parseCompilationUnit();
 
   @override
+  Token peek() {
+    parseComments();
+    return super.peek();
+  }
+
+  @override
   bool moveNext() {
     parseComments();
     return super.moveNext();
