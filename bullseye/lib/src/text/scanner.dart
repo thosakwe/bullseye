@@ -141,7 +141,7 @@ class NormalModeScanner extends SubScannerBase {
   final Map<Pattern, TokenType> patterns = {
     new RegExp('--([^\n]*)'): TokenType.comment,
     '@': TokenType.arroba,
-    '->': TokenType.arrow,
+    '=>': TokenType.arrow,
     ':': TokenType.colon,
     ',': TokenType.comma,
     '.': TokenType.dot,

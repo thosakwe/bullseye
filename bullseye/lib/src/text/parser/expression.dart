@@ -72,6 +72,62 @@ class ExpressionParser extends PrattParser<Expression> {
     }
   }
 
+  FunctionExpression parseFunctionExpression([Token fun]) {
+    if (fun == null) {
+      if (parser.peek()?.type == TokenType.fun && parser.moveNext()) {
+        fun = parser.current;
+      } else {
+        return null;
+      }
+    }
+
+    var span = fun.span, lastSpan = span;
+    var params = <FunctionExpressionParameter>[];
+    var unit = parser.parseUnit();
+
+    if (unit != null) {
+      span = span.expand(lastSpan = unit.span);
+    } else {
+      var param = parseFunctionExpressionParameter();
+      while (param != null) {
+        params.add(param);
+        span = span.expand(lastSpan = param.span);
+        param = parseFunctionExpressionParameter();
+      }
+
+      if (params.isEmpty) {
+        parser.exceptions.add(new BullseyeException(
+            BullseyeExceptionSeverity.error,
+            lastSpan,
+            "Missing parameter list in anonymous function. If you intend to take zero parameters, use a unit ('()') literal."));
+      }
+    }
+
+    var asyncMarker = parser.parseAsyncMarker();
+
+    if (parser.peek()?.type == TokenType.arrow && parser.moveNext()) {
+      var arrow = parser.current;
+      span = span.expand(lastSpan = arrow.span);
+    } else {
+      parser.exceptions.add(new BullseyeException(
+          BullseyeExceptionSeverity.error,
+          lastSpan,
+          "Missing '=>' in anonymous function."));
+    }
+
+    var body = parser.expressionParser.parse();
+
+    if (body == null) {
+      parser.exceptions.add(new BullseyeException(
+          BullseyeExceptionSeverity.error,
+          lastSpan,
+          "Missing return value in anonymous function."));
+      body = new NullLiteral([], fun.span);
+    }
+
+    return new FunctionExpression([], span, params, asyncMarker, body);
+  }
+
   FunctionExpressionParameter parseFunctionExpressionParameter() {
     // TODO: Annotations
     // TODO: default values
@@ -96,11 +152,8 @@ class ExpressionParser extends PrattParser<Expression> {
           return null;
         }
       } else {
-        parser.exceptions.add(new BullseyeException(
-            BullseyeExceptionSeverity.error,
-            name.span,
-            "Missing ':' after identifier '${name.name}'."));
-        return null;
+        return new FunctionExpressionParameter(
+            annotations, [], name.span, name, null);
       }
     } else {
       return null;
@@ -117,6 +170,8 @@ class ExpressionParser extends PrattParser<Expression> {
     addString(TokenType type) => addPrefix(type, parseString(type));
     addString(TokenType.doubleQuote);
     addString(TokenType.singleQuote);
+    addPrefix(TokenType.fun,
+        (p, token) => p.expressionParser.parseFunctionExpression(token));
     addPrefix(
       TokenType.double$,
       (p, token) => new DoubleLiteral(token, [], token.span),

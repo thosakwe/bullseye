@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'package:bullseye/bullseye.dart';
+import 'package:kernel/ast.dart' as k;
 export 'parser/parser.dart';
 
 class Parser extends ScannerIterator {
@@ -64,6 +65,28 @@ class Parser extends ScannerIterator {
       exceptions.add(new BullseyeException(
           BullseyeExceptionSeverity.error, span, "Unexpected text."));
     }
+  }
+
+  k.AsyncMarker parseAsyncMarker() {
+    // Attempt to parse a marker...
+    k.AsyncMarker asyncMarker = k.AsyncMarker.Sync;
+
+    bool parseMarker(TokenType type, k.AsyncMarker marker) {
+      if (peek()?.type == type && moveNext()) {
+        asyncMarker = marker;
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    if (!parseMarker(TokenType.async$, k.AsyncMarker.Async)) {
+      if (!parseMarker(TokenType.asyncStar, k.AsyncMarker.AsyncStar)) {
+        parseMarker(TokenType.syncStar, k.AsyncMarker.SyncStar);
+      }
+    }
+
+    return asyncMarker;
   }
 
   UnitLiteral parseUnit() {

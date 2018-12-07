@@ -24,24 +24,7 @@ class FunctionParser {
         if (parameterList != null) {
           span = span.expand(parameterList.span);
 
-          // Attempt to parse a marker...
-          k.AsyncMarker asyncMarker = k.AsyncMarker.Sync;
-
-          bool parseMarker(TokenType type, k.AsyncMarker marker) {
-            if (parser.peek()?.type == type && parser.moveNext()) {
-              asyncMarker = marker;
-              span = span.expand(parser.current.span);
-              return true;
-            } else {
-              return false;
-            }
-          }
-
-          if (!parseMarker(TokenType.async$, k.AsyncMarker.Async)) {
-            if (!parseMarker(TokenType.asyncStar, k.AsyncMarker.AsyncStar)) {
-              parseMarker(TokenType.syncStar, k.AsyncMarker.SyncStar);
-            }
-          }
+          var asyncMarker = parser.parseAsyncMarker();
 
           if (parser.peek()?.type == TokenType.equals && parser.moveNext()) {
             var equals = parser.current;
