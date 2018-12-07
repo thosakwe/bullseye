@@ -129,8 +129,21 @@ class BullseyeKernelCompiler {
     } else if (loadedLibraries.containsKey(uri)) {
       return loadedLibraries[lib];
     } else {
-      var resolved = await PackageResolver.current.resolveUri(uri);
+      var resolver = await PackageResolver.loadConfig(
+          Uri(scheme: 'file', path: p.join(p.current, '.packages')));
+      var resolved = await resolver.resolveUri(uri);
       k.Component component;
+
+      if (resolved == null) {
+        if (uri.scheme == 'package' && uri.pathSegments.isNotEmpty) {
+          var packageName = uri.pathSegments[0];
+          print(await resolver.packageConfigMap);
+          throw new StateError(
+              'Cannot resolve URI $uri. `package:$packageName` seems to not be installed.');
+        } else {
+          throw new UnsupportedError('Cannot resolve URI $uri.');
+        }
+      }
 
       if (p.extension(resolved.path) == '.dart') {
         // Compile it via FASTA!
@@ -144,11 +157,13 @@ class BullseyeKernelCompiler {
           ..target = target
           ..strongMode = target.strongMode
           ..sdkSummary = platformStrongUri
-          //..linkedDependencies = [platformStrongUri]
+          ..linkedDependencies = [platformStrongUri]
           ..librariesSpecificationUri = specUri
-          ..packagesFileUri = await PackageResolver.current.packageConfigUri;
+          ..packagesFileUri = await resolver.packageConfigUri;
 
-        component = await fe.kernelForComponent([resolved], options);
+        resolved =
+            resolved.replace(scheme: 'file', path: p.absolute(resolved.path));
+        component = await fe.kernelForComponent([uri], options);
 
         if (component == null) {
           throw new StateError('Compilation of file $uri to IR failed.');
@@ -165,8 +180,8 @@ class BullseyeKernelCompiler {
           classHierarchy = new k.ClassHierarchy(vmPlatform);
         }
 
-        var out =
-            component.libraries.firstWhere((l) => l.importUri == resolved);
+        var out = component.libraries
+            .firstWhere((l) => l.importUri == resolved, orElse: () => component.libraries[0]);
         out.importUri = uri;
         return out;
       } else {
@@ -185,6 +200,8 @@ class BullseyeKernelCompiler {
     // TODO: Alias support (use a LibraryWrapper expression)
     if (_imported.add(uri)) {
       void apply(k.Library lib) {
+        if (lib == null) return;
+
         if (uri != dartCoreUri)
           library.addDependency(new k.LibraryDependency.import(lib));
 

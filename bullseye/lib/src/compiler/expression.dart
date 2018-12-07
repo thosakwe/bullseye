@@ -19,6 +19,7 @@ class BullseyeKernelExpressionCompiler {
     if (ctx is BeginEndExpression) return compileBeginEnd(ctx, scope);
     if (ctx is IndirectCallExpression) return compileIndirectCall(ctx, scope);
     if (ctx is FunctionExpression) return compileFunction(ctx, scope);
+    if (ctx is ParenthesizedExpression) return compile(ctx.innermost, scope);
     compiler.exceptions.add(new BullseyeException(
         BullseyeExceptionSeverity.error,
         ctx.span,
@@ -173,6 +174,7 @@ class BullseyeKernelExpressionCompiler {
 
   /// Try to infer the types of any ParameterGet instances being passed as function arguments.
   void inferArgumentTypes(k.Arguments args, k.FunctionNode function) {
+    //if (args == null) return;
     int i = 0;
 
     void infer(k.Expression expr, k.VariableDeclaration param) {
@@ -230,7 +232,14 @@ class BullseyeKernelExpressionCompiler {
     } else if (knownProcedure == null) {
       // Otherwise, just return a call.
       // If knownProcedure == null, we are NOT calling a member function.
-      var vGet = targetExpr as k.VariableGet;
+      k.VariableGet vGet;
+
+      if (targetExpr is k.VariableGet) {
+        vGet = targetExpr;
+      } else if (targetExpr is ParameterGet) {
+        vGet = targetExpr.value;
+      }
+
       var ref = compiler.procedureReferences[vGet];
       if (ref != null) {
         inferArgumentTypes(args, ref.asProcedure.function);
@@ -270,6 +279,7 @@ class BullseyeKernelExpressionCompiler {
       return null;
     } else {
       var args = compileArguments(ctx, scope);
+      if (args == null) return null;
       var interfaceType = resolveTargetToType(targetExpr, ctx.name.span);
       return compileCallInvocation(
           targetExpr, interfaceType, args, ctx.name.span, '', null);
@@ -394,6 +404,7 @@ class BullseyeKernelExpressionCompiler {
     // TODO: Apply current async marker
     var fnNode = compiler.compileFunctionBody([], ctx.letBindings,
         ctx.ignoredExpressions, ctx.returnValue, k.AsyncMarker.Sync, scope);
+    if (fnNode == null) return null;
     var closure = new k.FunctionExpression(fnNode);
     return new k.MethodInvocation(
         closure, new k.Name('call'), new k.Arguments([]));
