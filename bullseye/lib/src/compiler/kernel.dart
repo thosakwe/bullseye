@@ -367,7 +367,7 @@ class BullseyeKernelCompiler {
       var pGet = new ParameterGet(parameter, vGet);
 
       if (parameter.type != null) {
-        pGet.type = typeCompiler.compile(parameter.type);
+        pGet.type = typeCompiler.compile(parameter.type, scope);
       }
 
       try {

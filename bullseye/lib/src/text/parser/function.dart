@@ -203,12 +203,6 @@ class FunctionParser {
   }
 
   Parameter parseParameter() {
-    // TODO: Parse annotations + comments
-    if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
-      var id = new Identifier([], parser.current);
-      return new Parameter([], id.comments, parser.current.span, id);
-    } else {
-      return null;
-    }
+    return parser.expressionParser.parseFunctionExpressionParameter();
   }
 }

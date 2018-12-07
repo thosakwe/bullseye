@@ -220,15 +220,25 @@ class BullseyeKernelExpressionCompiler {
         var type = constructorName.isEmpty
             ? 'default constructor'
             : "constructor named '$constructorName'";
-        compiler.exceptions.add(new BullseyeException(
-            BullseyeExceptionSeverity.error,
-            span,
-            "$interfaceType has no $type, and therefore cannot be instantiated."));
-        return null;
-      }
 
-      inferArgumentTypes(args, constructor.function);
-      return new k.ConstructorInvocation(constructor, args);
+        // Look for a factory constructor.
+        var factoryProcedure = interfaceType.classNode.procedures.firstWhere(
+            (p) => p.isFactory && p.name.name == constructorName,
+            orElse: () => null);
+
+        if (factoryProcedure != null) {
+          return k.StaticInvocation(factoryProcedure, args);
+        } else {
+          compiler.exceptions.add(new BullseyeException(
+              BullseyeExceptionSeverity.error,
+              span,
+              "$interfaceType has no $type, and therefore cannot be instantiated."));
+          return null;
+        }
+      } else {
+        inferArgumentTypes(args, constructor.function);
+        return new k.ConstructorInvocation(constructor, args);
+      }
     } else if (knownProcedure == null) {
       // Otherwise, just return a call.
       // If knownProcedure == null, we are NOT calling a member function.
