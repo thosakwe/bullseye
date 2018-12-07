@@ -53,6 +53,7 @@ class BullseyeKernelCompiler {
   final CompilationUnit compilationUnit;
   final Parser parser;
   BullseyeKernelExpressionCompiler expressionCompiler;
+  BullseyeKernelTypeCompiler typeCompiler;
   k.Library library;
   k.LibraryIndex libraryIndex;
   SymbolTable<k.Expression> scope = new SymbolTable();
@@ -73,6 +74,7 @@ class BullseyeKernelCompiler {
     //     .getChildFromUri(ctx.span.sourceUrl)
     //     .getReference();
     expressionCompiler = new BullseyeKernelExpressionCompiler(this);
+    typeCompiler = new BullseyeKernelTypeCompiler(this);
 
     // TODO: This used to have a reference arg
     library = new k.Library(compilationUnit.span.sourceUrl,
@@ -347,6 +349,10 @@ class BullseyeKernelCompiler {
       var vGet = new k.VariableGet(v);
       var pGet = new ParameterGet(parameter, vGet);
 
+      if (parameter.type != null) {
+        pGet.type = typeCompiler.compile(parameter.type);
+      }
+
       try {
         s.create(parameter.name.name, value: pGet, constant: true);
         pGets.add(pGet);
@@ -463,9 +469,9 @@ class ParameterGet extends k.Expression {
 
   k.DartType get type => value.variable.type;
 
-  set type(k.DartType type) {
-    if (value.variable.type is k.DynamicType) {
-      value.variable.type = type;
+  set type(k.DartType v) {
+    if (value.variable.type is k.DynamicType && v != null) {
+      value.variable.type = v;
     }
   }
 

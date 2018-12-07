@@ -57,11 +57,11 @@ class FunctionExpression extends Expression {
       : super(comments, span);
 }
 
-class FunctionExpressionParameter extends AnnotatedNode {
-  final Identifier name;
+class FunctionExpressionParameter extends Parameter {
+  @override
   final TypeNode type;
 
   FunctionExpressionParameter(List<Annotation> annotations,
-      List<Token> comments, FileSpan span, this.name, this.type)
-      : super(annotations, comments, span);
+      List<Token> comments, FileSpan span, Identifier name, this.type)
+      : super(annotations, comments, span, name);
 }

@@ -17,6 +17,8 @@ class BullseyeKernelExpressionCompiler {
     if (ctx is MemberCallExpression) return compileMemberCall(ctx, scope);
     if (ctx is AwaitedExpression) return compileAwaited(ctx, scope);
     if (ctx is BeginEndExpression) return compileBeginEnd(ctx, scope);
+    if (ctx is IndirectCallExpression) return compileIndirectCall(ctx, scope);
+    if (ctx is FunctionExpression) return compileFunction(ctx, scope);
     compiler.exceptions.add(new BullseyeException(
         BullseyeExceptionSeverity.error,
         ctx.span,
@@ -395,5 +397,23 @@ class BullseyeKernelExpressionCompiler {
     var closure = new k.FunctionExpression(fnNode);
     return new k.MethodInvocation(
         closure, new k.Name('call'), new k.Arguments([]));
+  }
+
+  k.Expression compileIndirectCall(
+      IndirectCallExpression ctx, SymbolTable<k.Expression> scope) {
+    // TODO: Make sure it has a call
+    var callee = compile(ctx.callee, scope);
+    if (callee == null) return null;
+    var args = compileArguments(ctx, scope);
+    if (args == null) return null;
+    return new k.MethodInvocation(callee, new k.Name('call'), args);
+  }
+
+  k.Expression compileFunction(
+      FunctionExpression ctx, SymbolTable<k.Expression> scope) {
+    var fnNode = compiler.compileFunctionBody(
+        ctx.parameters, [], [], ctx.returnValue, ctx.asyncMarker, scope);
+    if (fnNode == null) return null;
+    return new k.FunctionExpression(fnNode);
   }
 }

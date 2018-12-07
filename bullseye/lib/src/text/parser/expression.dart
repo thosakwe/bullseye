@@ -44,8 +44,11 @@ class ExpressionParser extends PrattParser<Expression> {
   }
 
   Argument parseArgument(bool canParsePositional) {
-    if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
-      var id = new Identifier([], parser.current);
+    var expr = parse();
+    if (expr == null) return null;
+
+    if (expr is Identifier) {
+      var id = expr;
 
       if (parser.peek()?.type == TokenType.equals && parser.moveNext()) {
         var equals = parser.current;
@@ -64,10 +67,12 @@ class ExpressionParser extends PrattParser<Expression> {
         return new Argument(id);
       }
     } else if (canParsePositional) {
-      var expr = parse();
-      if (expr == null) return null;
       return new Argument(expr);
     } else {
+      parser.exceptions.add(new BullseyeException(
+          BullseyeExceptionSeverity.error,
+          expr.span,
+          "Positional arguments cannot follow named arguments."));
       return null;
     }
   }
@@ -123,6 +128,8 @@ class ExpressionParser extends PrattParser<Expression> {
           lastSpan,
           "Missing return value in anonymous function."));
       body = new NullLiteral([], fun.span);
+    } else {
+      span = span.expand(body.span);
     }
 
     return new FunctionExpression([], span, params, asyncMarker, body);
@@ -187,10 +194,6 @@ class ExpressionParser extends PrattParser<Expression> {
     addPrefix(
       TokenType.intScientific,
       (p, token) => new IntScientificLiteral(token, [], token.span),
-    );
-    addPrefix(
-      TokenType.id,
-      (p, token) => new Identifier([], token),
     );
     addPrefix(
       TokenType.lParen,
@@ -279,6 +282,12 @@ class ExpressionParser extends PrattParser<Expression> {
       return new BeginEndExpression(
           [], span, letBindings, ignored, returnValue);
     });
+
+    // THIS MUST BE LAST.
+    addPrefix(
+      TokenType.id,
+      (p, token) => new Identifier([], token),
+    );
   }
 
   void addInfixParselets() {

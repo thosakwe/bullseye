@@ -98,6 +98,8 @@ class ParameterList extends Node {
 class Parameter extends AnnotatedNode {
   final Identifier name;
 
+  TypeNode get type => null;
+
   Parameter(List<Annotation> annotations, List<Token> comments, FileSpan span,
       this.name)
       : super(annotations, comments, span);
