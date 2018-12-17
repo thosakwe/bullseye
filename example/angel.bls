@@ -15,7 +15,7 @@ let main() async =
         print "Listening at ${http.uri}"
     end
 
-let configureServer fs =
+let configureServer fs : FileSystem =
     fun app: Angel async =>
         begin
             let vDir = VirtualDirectory app fs source=(fs.directory 'web') in

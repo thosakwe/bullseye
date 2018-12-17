@@ -126,8 +126,8 @@ class BullseyeKernelCompiler {
 
     if (lib != null) {
       return lib;
-    } else if (loadedLibraries.containsKey(uri)) {
-      return loadedLibraries[lib];
+    } else if (loadedLibraries[uri] != null) {
+      return loadedLibraries[uri];
     } else {
       var resolver = await PackageResolver.loadConfig(
           Uri(scheme: 'file', path: p.join(p.current, '.packages')));
@@ -137,7 +137,6 @@ class BullseyeKernelCompiler {
       if (resolved == null) {
         if (uri.scheme == 'package' && uri.pathSegments.isNotEmpty) {
           var packageName = uri.pathSegments[0];
-          print(await resolver.packageConfigMap);
           throw new StateError(
               'Cannot resolve URI $uri. `package:$packageName` seems to not be installed.');
         } else {
@@ -180,9 +179,9 @@ class BullseyeKernelCompiler {
           classHierarchy = new k.ClassHierarchy(vmPlatform);
         }
 
-        var out = component.libraries
-            .firstWhere((l) => l.importUri == resolved, orElse: () => component.libraries[0]);
-        out.importUri = uri;
+        var out = component.libraries.firstWhere((l) => l.importUri == resolved,
+            orElse: () => component.libraries[0]);
+        //out.importUri = uri;
         return out;
       } else {
         throw new StateError(
@@ -198,13 +197,14 @@ class BullseyeKernelCompiler {
       List<String> show = const [],
       List<String> hide = const []}) async {
     // TODO: Alias support (use a LibraryWrapper expression)
-    if (_imported.add(uri)) {
-      void apply(k.Library lib) {
-        if (lib == null) return;
+    void apply(k.Library lib) {
+      if (lib == null) return;
+      var uri = lib?.importUri;
 
-        if (uri != dartCoreUri)
-          library.addDependency(new k.LibraryDependency.import(lib));
+      if (uri != dartCoreUri)
+        library.addDependency(new k.LibraryDependency.import(lib));
 
+      if (_imported.add(uri)) {
         bool canImport(String name) {
           if (show.isNotEmpty && !show.contains(name)) return false;
           if (hide.isNotEmpty && hide.contains(name)) return false;
@@ -278,10 +278,10 @@ class BullseyeKernelCompiler {
           }
         }
       }
-
-      var lib = await loadLibrary(uri);
-      apply(lib);
     }
+
+    var lib = await loadLibrary(uri);
+    apply(lib);
   }
 
   k.Component toComponent() {
