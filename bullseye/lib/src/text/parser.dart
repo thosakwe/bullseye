@@ -11,6 +11,7 @@ class Parser extends ScannerIterator {
   TypeParser typeParser;
 
   final Queue<Token> _errant = new Queue();
+  List<Token> _lastComments;
 
   Parser(Scanner scanner) : super(scanner) {
     declarationParser = new DeclarationParser(this);
@@ -18,6 +19,16 @@ class Parser extends ScannerIterator {
     functionParser = new FunctionParser(this);
     typeParser = new TypeParser(this);
     exceptions.addAll(scanner.exceptions);
+  }
+
+  List<Token> get lastComments {
+    if (_lastComments == null) {
+      return [];
+    } else {
+      var old = _lastComments;
+      _lastComments = null;
+      return old;
+    }
   }
 
   CompilationUnit parse() => declarationParser.parseCompilationUnit();
@@ -41,7 +52,7 @@ class Parser extends ScannerIterator {
       comments.add(current);
     }
 
-    return comments;
+    return _lastComments = comments;
   }
 
   @override

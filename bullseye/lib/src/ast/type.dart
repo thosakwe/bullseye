@@ -46,9 +46,28 @@ class UnionType extends CompositeType {
 //       : super(innermost.comments, innermost.span.expand(punctuation.span));
 // }
 
-class NullableType extends TypeNode {
-  final TypeNode innermost;
+// class NullableType extends TypeNode {
+//   final TypeNode innermost;
 
-  NullableType(this.innermost, Token punctuation)
-      : super(innermost.comments, innermost.span.expand(punctuation.span));
+//   NullableType(this.innermost, Token punctuation)
+//       : super(innermost.comments, innermost.span.expand(punctuation.span));
+// }
+
+class RecordType extends TypeNode {
+  final List<RecordTypeField> fields;
+
+  RecordType(List<Token> comments, FileSpan span, this.fields)
+      : super(comments, span);
+}
+
+class RecordTypeField extends Node {
+  final Identifier identifier;
+  final TypeNode type;
+  final bool isMutable;
+
+  RecordTypeField(List<Token> comments, FileSpan span, this.identifier,
+      this.type, this.isMutable)
+      : super(comments, span);
+
+  String get name => identifier.name;
 }

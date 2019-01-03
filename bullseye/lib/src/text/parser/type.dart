@@ -95,6 +95,8 @@ class TypeParser extends PrattParser<TypeNode> {
       }
     });
 
+    addPrefix(TokenType.lCurly, (p, token) => parseRecordType(token));
+
     void composite(
         TokenType delimiter,
         TypeNode Function(List<Token>, FileSpan, List<TypeNode>) f,
@@ -129,11 +131,97 @@ class TypeParser extends PrattParser<TypeNode> {
       });
     }
 
-    composite(TokenType.comma, (c, s, i) => new TupleType(c, s, i),
+    composite(TokenType.times, (c, s, i) => new TupleType(c, s, i),
         (t) => t is TupleType);
-    composite(TokenType.bitwiseOr, (c, s, i) => new UnionType(c, s, i),
-        (t) => t is UnionType);
-    addInfix(TokenType.nullable,
-        (p, prec, left, token) => new NullableType(left, token));
+    // composite(TokenType.bitwiseOr, (c, s, i) => new UnionType(c, s, i),
+    //     (t) => t is UnionType);
+    // addInfix(TokenType.nullable,
+    //     (p, prec, left, token) => new NullableType(left, token));
+  }
+
+  RecordType parseRecordType([Token lCurly]) {
+    List<Token> comments;
+
+    if (lCurly == null) {
+      if (parser.peek()?.type == TokenType.lCurly && parser.moveNext()) {
+        comments = parser.lastComments;
+        lCurly = parser.current;
+      } else {
+        comments = parser.parseComments();
+        return null;
+      }
+    }
+
+    var span = lCurly.span, lastSpan = span;
+    var fields = <RecordTypeField>[];
+    var field = parseRecordTypeField();
+
+    while (field != null) {
+      fields.add(field);
+      span = span.expand(lastSpan = field.span);
+
+      if (parser.peek()?.type == TokenType.semi && parser.moveNext()) {
+        field = parseRecordTypeField();
+      } else {
+        break;
+      }
+    }
+
+    if (parser.peek()?.type == TokenType.rCurly && parser.moveNext()) {
+      span = span.expand(parser.current.span);
+    } else {
+      parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
+          lastSpan, "Missing '}' in record type literal."));
+      return null;
+    }
+
+    return RecordType(comments, span, fields);
+  }
+
+  RecordTypeField parseRecordTypeField() {
+    var comments = parser.parseComments();
+    bool isMutable = false;
+    FileSpan span, lastSpan;
+
+    if (parser.peek()?.type == TokenType.mutable && parser.moveNext()) {
+      isMutable = true;
+      span = lastSpan = parser.current.span;
+    }
+
+    if (parser.peek()?.type != TokenType.id || !parser.moveNext()) {
+      if (isMutable) {
+        parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
+            span, "Missing identifier after 'mutable' keyword."));
+      }
+
+      return null;
+    }
+
+    var id = Identifier([], parser.current);
+
+    if (isMutable) {
+      span = span.expand(lastSpan = id.span);
+    } else {
+      span = lastSpan = id.span;
+    }
+
+    if (parser.peek()?.type == TokenType.colon && parser.moveNext()) {
+      span = span.expand(lastSpan = parser.current.span);
+      var type = parser.typeParser.parse();
+
+      if (type == null) {
+        parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
+            lastSpan, "Missing type after ':' in record field '${id.name}'."));
+        return null;
+      }
+
+      return RecordTypeField(comments, span, id, type, isMutable);
+    } else {
+      parser.exceptions.add(BullseyeException(
+          BullseyeExceptionSeverity.error,
+          lastSpan,
+          "Missing ':' after identifier '${id.name}' in record field."));
+      return null;
+    }
   }
 }

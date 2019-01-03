@@ -79,6 +79,7 @@ enum TokenType {
   is$,
   isNot,
   let,
+  mutable,
   proto,
   rec,
   show,
