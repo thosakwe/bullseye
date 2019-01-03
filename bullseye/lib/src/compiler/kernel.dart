@@ -173,11 +173,13 @@ class BullseyeKernelCompiler {
 
       if (component.libraries.isNotEmpty) {
         // Load all libraries in.
-        for (var lib in component.libraries) {
-          loadedLibraries[lib.importUri] ??= lib;
-          vmPlatform.libraries.add(lib);
-          classHierarchy = new k.ClassHierarchy(vmPlatform);
-        }
+        classHierarchy.applyTreeChanges([], component.libraries);
+        // for (var lib in component.libraries) {
+        //   loadedLibraries[lib.importUri] ??= lib;
+        //   // TODO: This might break things
+        //   //vmPlatform.libraries.add(lib);
+        //   //classHierarchy = new k.ClassHierarchy(vmPlatform);
+        // }
 
         var out = component.libraries.firstWhere((l) => l.importUri == resolved,
             orElse: () => component.libraries[0]);
@@ -301,25 +303,68 @@ class BullseyeKernelCompiler {
   void compile() {
     if (!_compiled) {
       // TODO: Work out forward and cyclic references...!
-      for (var decl in compilationUnit.topLevelDeclarations) {
-        if (decl is FunctionDeclaration) {
-          var fn = compileFunctionDeclaration(decl);
-          if (fn == null) continue;
-          library.addMember(fn);
-          if (decl.name.name == 'main') _component.mainMethod = fn;
+      var types =
+          compilationUnit.topLevelDeclarations.whereType<TypeDeclaration>();
+      var functions =
+          compilationUnit.topLevelDeclarations.whereType<FunctionDeclaration>();
 
-          // Add it to the scope
-          var v = new k.VariableDeclaration(decl.name.name,
-              type: fn.function.functionType);
-          var vGet = new k.VariableGet(v);
-          procedureReferences[vGet] = fn.reference;
+      for (var decl in types) {
+        var type = typeCompiler.compile(decl.type, scope, decl.name.name);
+
+        if (type == null) {
+          exceptions.add(BullseyeException(
+              BullseyeExceptionSeverity.error,
+              decl.span,
+              "Evaluation of the typedef '${decl.name.name}' resulted in an error."));
+        } else {
+          TypeWrapper value;
+
+          if (type is k.FunctionType) {
+            var def = k.Typedef(decl.name.name, type);
+            value = TypeWrapper(type, typedef$: def);
+          } else if (type is k.InterfaceType) {
+            value = TypeWrapper(type, clazz: type.classNode);
+          } else {
+            value = TypeWrapper(type);
+          }
 
           try {
-            scope.create(decl.name.name, value: vGet, constant: true);
+            scope.create(decl.name.name, value: value, constant: true);
+
+            if (value.clazz != null) {
+              library.addClass(value.clazz);
+            } else if (value.typedef$ != null) {
+              library.addTypedef(value.typedef$);
+            }
           } on StateError catch (e) {
-            exceptions.add(new BullseyeException(
-                BullseyeExceptionSeverity.error, decl.name.span, e.message));
+            exceptions.add(BullseyeException(
+                BullseyeExceptionSeverity.error, decl.span, e.message));
+          } catch (e, st) {
+            exceptions.add(BullseyeException(
+                BullseyeExceptionSeverity.error,
+                decl.span,
+                'The Bullseye Compiler has encountered an uncaught error: $e\n$st\n\nPlease report it.'));
           }
+        }
+      }
+
+      for (var decl in functions) {
+        var fn = compileFunctionDeclaration(decl);
+        if (fn == null) continue;
+        library.addMember(fn);
+        if (decl.name.name == 'main') _component.mainMethod = fn;
+
+        // Add it to the scope
+        var v = new k.VariableDeclaration(decl.name.name,
+            type: fn.function.functionType);
+        var vGet = new k.VariableGet(v);
+        procedureReferences[vGet] = fn.reference;
+
+        try {
+          scope.create(decl.name.name, value: vGet, constant: true);
+        } on StateError catch (e) {
+          exceptions.add(new BullseyeException(
+              BullseyeExceptionSeverity.error, decl.name.span, e.message));
         }
       }
 

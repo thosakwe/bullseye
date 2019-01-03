@@ -175,6 +175,11 @@ class TypeParser extends PrattParser<TypeNode> {
       return null;
     }
 
+    if (fields.isEmpty) {
+      parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
+          span, 'Record fields cannot be empty.'));
+    }
+
     return RecordType(comments, span, fields);
   }
 

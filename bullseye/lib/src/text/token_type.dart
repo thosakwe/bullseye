@@ -90,9 +90,6 @@ enum TokenType {
   with$,
 
   // Values
-  false$,
-  true$,
-  null$,
   hex,
   octal,
   binary,

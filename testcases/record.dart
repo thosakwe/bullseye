@@ -1,12 +1,24 @@
-class Todo {
+class todo {
   final String text;
   final bool completed;
 
-  Todo({this.text, this.completed = false});
+  todo({this.text, this.completed = false});
+
+  bool operator ==(other) =>
+      other is todo && other.text == text && other.completed == completed;
+
+  todo copyWith({String text, bool completed}) {
+    return todo(
+        text: text ?? this.text, completed: completed ?? this.completed);
+  }
+
+  String toString() {
+    return 'todo { text = $text; completed = $completed }';
+  }
 }
 
 bool main() {
-  var cleanYourRoom = Todo(text: 'Clean your room!');
-  var dupe = Todo(completed: cleanYourRoom.completed, text: 'Do the dishes!');
+  var cleanYourRoom = todo(text: 'Clean your room!', completed: false);
+  var dupe = cleanYourRoom.copyWith(text: 'Do the dishes!');
   return dupe.completed;
 }

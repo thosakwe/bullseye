@@ -205,9 +205,7 @@ class ExpressionParser extends PrattParser<Expression> {
           return null;
         }
       } else {
-        parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
-            id.span, "Missing '=' after identifier '${id.name}'."));
-        return null;
+        return RecordKVPair([], id.span, id, id);
       }
     } else {
       return null;
@@ -332,17 +330,18 @@ class ExpressionParser extends PrattParser<Expression> {
 
     addPrefix(TokenType.lCurly, (p, token) {
       Expression withBinding;
-      FileSpan span, lastSpan;
+      FileSpan span = token.span, lastSpan = span;
 
       withBinding = p.expressionParser.parse();
 
       if (withBinding != null) {
-        span = lastSpan = withBinding.span;
+        span = span.expand(lastSpan = withBinding.span);
 
         if (parser.peek()?.type == TokenType.with$ && parser.moveNext()) {
           span = span.expand(parser.current.span);
         } else if (withBinding is Identifier) {
           // ID's take up just one token, so backtrack.
+          withBinding = null;
           parser.movePrevious();
         } else {
           parser.exceptions.add(BullseyeException(
@@ -371,6 +370,13 @@ class ExpressionParser extends PrattParser<Expression> {
       if (parser.peek()?.type != TokenType.rCurly || !parser.moveNext()) {
         parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
             lastSpan, "Missing '}' in record expression literal."));
+      } else {
+        span = span.expand(parser.current.span);
+      }
+
+      if (pairs.isEmpty) {
+        parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
+            span, 'Record literals cannot be empty.'));
       }
 
       return RecordExpression([], span, withBinding, pairs);

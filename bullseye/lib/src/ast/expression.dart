@@ -23,6 +23,12 @@ class Identifier extends Expression {
   Identifier(List<Token> comments, this.token, [this._name])
       : super(comments, token.span);
 
+  Identifier.synthetic(List<Token> comments, FileSpan span, String name)
+      : token = null,
+        super(comments, span) {
+    _name = name;
+  }
+
   String get name => _name ?? token.span.text;
 }
 

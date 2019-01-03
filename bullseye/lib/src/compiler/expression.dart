@@ -20,6 +20,7 @@ class BullseyeKernelExpressionCompiler {
     if (ctx is IndirectCallExpression) return compileIndirectCall(ctx, scope);
     if (ctx is FunctionExpression) return compileFunction(ctx, scope);
     if (ctx is ParenthesizedExpression) return compile(ctx.innermost, scope);
+    if (ctx is RecordExpression) return compileRecord(ctx, scope);
     compiler.exceptions.add(new BullseyeException(
         BullseyeExceptionSeverity.error,
         ctx.span,
@@ -66,6 +67,14 @@ class BullseyeKernelExpressionCompiler {
 
   k.Expression compileIdentifier(
       Identifier ctx, SymbolTable<k.Expression> scope) {
+    if (ctx.name == 'null') {
+      return k.NullLiteral();
+    } else if (ctx.name == 'true') {
+      return k.BoolLiteral(true);
+    } else if (ctx.name == 'false') {
+      return k.BoolLiteral(false);
+    }
+
     var symbol = scope.resolve(ctx.name);
 
     if (symbol != null) {
@@ -162,6 +171,7 @@ class BullseyeKernelExpressionCompiler {
       }
     } else {
       // Check if the expression is an instance of Type.
+
       if (targetType is k.InterfaceType &&
           compiler.classHierarchy
               .isSubclassOf(targetType.classNode, typeOfType)) {
@@ -328,8 +338,16 @@ class BullseyeKernelExpressionCompiler {
           var clazz = typeOf.classNode;
 
           while (clazz != null) {
-            var field = clazz.procedures.firstWhere(
-                (f) => f.isGetter && f.name.name == ctx.name.name,
+            var field = clazz.members.firstWhere(
+                (f) {
+                  if (f is k.Procedure) {
+                    return f.isGetter && f.name.name == ctx.name.name;
+                  } else if (f is k.Field) {
+                    return f.name.name == ctx.name.name && f.hasImplicitGetter;
+                  } else {
+                    return false;
+                  }
+                },
                 orElse: () => null);
 
             if (field != null) {
@@ -377,7 +395,7 @@ class BullseyeKernelExpressionCompiler {
                 (p) => p.name.name == ctx.target.name.name,
                 orElse: () => null);
             if (knownProcedure != null) break;
-            clazz = it.superclass.thisType;
+            clazz = it.superclass?.thisType;
           }
         }
 
@@ -436,5 +454,141 @@ class BullseyeKernelExpressionCompiler {
         ctx.parameters, [], [], ctx.returnValue, ctx.asyncMarker, scope);
     if (fnNode == null) return null;
     return new k.FunctionExpression(fnNode);
+  }
+
+  k.Expression compileRecord(
+      RecordExpression ctx, SymbolTable<k.Expression> scope) {
+    if (ctx.withBinding != null) {
+      // If this is an { x with ... } expr, then call copyWith(...)
+      var withBinding =
+          compiler.expressionCompiler.compile(ctx.withBinding, scope);
+
+      if (withBinding == null) {
+        return null;
+      } else {
+        // Dogfooding is the name of the game. Manufacture a MemberCallExpr.
+        var target = MemberExpression(
+            ctx.comments,
+            ctx.span,
+            ctx.withBinding,
+            Identifier.synthetic([], ctx.span, 'copyWith'),
+            Token(TokenType.dot, ctx.span, null));
+        var arguments = ctx.pairs.map((pair) {
+          return NamedArgument(
+              pair.comments, pair.span, pair.identifier, pair.expression);
+        }).toList();
+        var call =
+            MemberCallExpression(ctx.comments, ctx.span, arguments, target);
+        return compile(call, scope);
+      }
+    } else {
+      // If it's empty, return `null`.
+      if (ctx.pairs.isEmpty) return k.NullLiteral();
+
+      // Otherwise, we need to:
+      // 1. Find a type, T, with getters matching the given fields
+      // 2: Instantiate T with the fields as named args
+      k.DartType type;
+
+      // Query in reverse, so that newer symbols get preference.
+      for (var symbol in scope.allVariables.reversed) {
+        var value = symbol.value;
+
+        if (value is TypeWrapper && value.clazz != null) {
+          var clazz = value.clazz;
+
+          // The class must have the same number of fields, of course.
+          if (clazz.fields.length == ctx.pairs.length) {
+            // Next, each field must be represented.
+            bool found = true;
+
+            for (var field in clazz.fields) {
+              var withName = ctx.pairs.where((p) => p.name == field.name.name);
+              if (withName.length != 1) {
+                // Nope, try the next type.
+                found = false;
+                break;
+              }
+            }
+
+            if (!found) continue;
+
+            // We've found our target type!
+            type = clazz.thisType;
+            break;
+          } else {
+            continue;
+          }
+        }
+      }
+
+      if (type == null) {
+        compiler.exceptions.add(BullseyeException(
+            BullseyeExceptionSeverity.error,
+            ctx.span,
+            'No type in this context matches the signature of this record literal.'));
+        return null;
+      }
+
+      // Find the default constructor
+      k.Member constructor;
+
+      if (type is k.InterfaceType) {
+        constructor = type.classNode.members.firstWhere((m) {
+          if (m is k.Constructor) {
+            return m.name?.name == '';
+          } else if (m is k.RedirectingFactoryConstructor) {
+          } else if (m is k.Procedure) {
+            return m.kind == k.ProcedureKind.Factory && m.name.name == '';
+          } else {
+            return false;
+          }
+        }, orElse: () => null);
+      }
+
+      if (constructor == null) {
+        BullseyeException(BullseyeExceptionSeverity.error, ctx.span,
+            "This record literal was mapped to the type '$type', which has no default constructor.");
+        return null;
+      }
+
+      // Create an arglist
+      var args = <k.NamedExpression>[];
+
+      for (var pair in ctx.pairs) {
+        var value = compile(pair.expression, scope);
+
+        if (value == null) {
+          compiler.exceptions.add(BullseyeException(
+              BullseyeExceptionSeverity.error,
+              pair.span,
+              'Could not compute the value of this expression. Correct the corresponding error.'));
+        } else {
+          args.add(k.NamedExpression(pair.name, value));
+        }
+      }
+
+      var arguments = k.Arguments([], named: args);
+
+      if (constructor is k.Constructor) {
+        return k.ConstructorInvocation(constructor, arguments);
+      } else if (constructor is k.Procedure) {
+        return k.StaticInvocation(constructor, arguments);
+      } else if (constructor is k.RedirectingFactoryConstructor) {
+        var target = constructor.target;
+
+        if (target is k.Constructor) {
+          return k.ConstructorInvocation(target, arguments);
+        } else if (target is k.Procedure) {
+          return k.StaticInvocation(target, arguments);
+        } else {
+          throw new StateError(
+              'Cannot instantiate redirect to $target from $constructor. This is a bug in the compiler; please report it.');
+        }
+      } else {
+        throw new StateError(
+            'Cannot instantiate $constructor. This is a bug in the compiler; please report it.');
+      }
+    }
   }
 }
