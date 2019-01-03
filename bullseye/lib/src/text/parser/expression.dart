@@ -44,36 +44,54 @@ class ExpressionParser extends PrattParser<Expression> {
   }
 
   Argument parseArgument(bool canParsePositional) {
-    var expr = parse();
-    if (expr == null) return null;
+    if (parser.peek()?.type == TokenType.bitwiseNegate && parser.moveNext()) {
+      var tilde = parser.current;
 
-    if (expr is Identifier) {
-      var id = expr;
+      if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
+        var id = Identifier([], parser.current);
 
-      if (parser.peek()?.type == TokenType.equals && parser.moveNext()) {
-        var equals = parser.current;
-        var expr = parse();
-        if (expr != null) {
-          return new NamedArgument(
-              [], id.span.expand(equals.span).expand(expr.span), id, expr);
+        if (parser.peek()?.type == TokenType.colon && parser.moveNext()) {
+          var colon = parser.current;
+          var expr = parse();
+          if (expr != null) {
+            return new NamedArgument([],
+                tilde.span.expand(id.span).expand(colon.span).expand(expr.span),
+                id,
+                expr);
+          } else {
+            parser.exceptions.add(new BullseyeException(
+                BullseyeExceptionSeverity.error,
+                colon.span,
+                "Missing expression after ':' for named argument '${id.name}'."));
+            return null;
+          }
         } else {
           parser.exceptions.add(new BullseyeException(
               BullseyeExceptionSeverity.error,
-              equals.span,
-              "Missing expression after ':' for named argument '${id.name}'."));
+              id.span,
+              "Missing ':' in named argument '${id.name}'."));
           return null;
         }
       } else {
-        return new Argument(id);
+        parser.exceptions.add(new BullseyeException(
+            BullseyeExceptionSeverity.error,
+            tilde.span,
+            "Missing identifier after '~' is named argument."));
+        return null;
       }
-    } else if (canParsePositional) {
-      return new Argument(expr);
     } else {
-      parser.exceptions.add(new BullseyeException(
-          BullseyeExceptionSeverity.error,
-          expr.span,
-          "Positional arguments cannot follow named arguments."));
-      return null;
+      var expr = parse();
+      if (expr == null) return null;
+
+      if (canParsePositional) {
+        return new Argument(expr);
+      } else {
+        parser.exceptions.add(new BullseyeException(
+            BullseyeExceptionSeverity.error,
+            expr.span,
+            "Positional arguments cannot follow named arguments."));
+        return null;
+      }
     }
   }
 
