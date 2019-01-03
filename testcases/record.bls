@@ -1,11 +1,6 @@
-(* 
-    Data classes are immutable and constant.
-    They are designed for use with the operator "with"
-*)
-
-type Todo = { text: String; completed: bool }
+type todo = { text: String; completed: bool }
 
 let main () =
-    let cleanYourRoom = { text : "Clean your room!" } in
+    let cleanYourRoom = { text = "Clean your room!" } in
     let dupe = { cleanYourRoom with text = "Do the dishes!" } in
     dupe.completed

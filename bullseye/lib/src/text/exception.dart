@@ -34,7 +34,7 @@ class BullseyeException implements Exception {
     if (showSpan && span != null) {
       b..writeln()..writeln(span.highlight(color: color));
     }
-    
+
     return b.toString();
   }
 }

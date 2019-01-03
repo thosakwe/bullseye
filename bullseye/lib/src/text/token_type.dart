@@ -87,6 +87,7 @@ enum TokenType {
   step,
   type,
   val,
+  with$,
 
   // Values
   false$,

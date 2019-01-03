@@ -149,6 +149,10 @@ class FunctionParser {
                 BullseyeExceptionSeverity.error,
                 equals.span,
                 "Expected expression after '='."));
+
+            // Skip the `in` keyword, if there was an errant expression.
+            if (parser.peek()?.type == TokenType.in$) parser.moveNext();
+
             return new LetBinding(id.comments, id.span, id, defaultValue);
           }
         } else {

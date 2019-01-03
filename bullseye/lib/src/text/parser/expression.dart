@@ -1,4 +1,5 @@
 import 'package:bullseye/bullseye.dart';
+import 'package:source_span/source_span.dart';
 
 class ExpressionParser extends PrattParser<Expression> {
   ExpressionParser(Parser parser) : super(parser) {
@@ -185,6 +186,34 @@ class ExpressionParser extends PrattParser<Expression> {
     }
   }
 
+  RecordKVPair parseRecordKVPair() {
+    if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
+      var id = Identifier([], parser.current);
+
+      if (parser.peek()?.type == TokenType.equals && parser.moveNext()) {
+        var equals = parser.current;
+        var value = parser.expressionParser.parse();
+
+        if (value != null) {
+          return RecordKVPair(
+              [], id.span.expand(equals.span).expand(value.span), id, value);
+        } else {
+          parser.exceptions.add(BullseyeException(
+              BullseyeExceptionSeverity.error,
+              equals.span,
+              "Missing expression after '=' in field '${id.name}'."));
+          return null;
+        }
+      } else {
+        parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
+            id.span, "Missing '=' after identifier '${id.name}'."));
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
+
   void addPrefixParselets() {
     PrefixParselet<Expression> parseString(TokenType type) {
       return (p, token) {
@@ -299,6 +328,52 @@ class ExpressionParser extends PrattParser<Expression> {
 
       return new BeginEndExpression(
           [], span, letBindings, ignored, returnValue);
+    });
+
+    addPrefix(TokenType.lCurly, (p, token) {
+      Expression withBinding;
+      FileSpan span, lastSpan;
+
+      withBinding = p.expressionParser.parse();
+
+      if (withBinding != null) {
+        span = lastSpan = withBinding.span;
+
+        if (parser.peek()?.type == TokenType.with$ && parser.moveNext()) {
+          span = span.expand(parser.current.span);
+        } else if (withBinding is Identifier) {
+          // ID's take up just one token, so backtrack.
+          parser.movePrevious();
+        } else {
+          parser.exceptions.add(BullseyeException(
+              BullseyeExceptionSeverity.error,
+              lastSpan,
+              "Missing 'with' keyword after expression."));
+          return null;
+        }
+      }
+
+      var pairs = <RecordKVPair>[];
+      var pair = parseRecordKVPair();
+
+      while (pair != null) {
+        pairs.add(pair);
+        span = span.expand(lastSpan = pair.span);
+
+        if (parser.peek()?.type == TokenType.semi && parser.moveNext()) {
+          pair = parseRecordKVPair();
+          span = span.expand(parser.current.span);
+        } else {
+          break;
+        }
+      }
+
+      if (parser.peek()?.type != TokenType.rCurly || !parser.moveNext()) {
+        parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
+            lastSpan, "Missing '}' in record expression literal."));
+      }
+
+      return RecordExpression([], span, withBinding, pairs);
     });
 
     // THIS MUST BE LAST.

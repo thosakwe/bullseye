@@ -65,3 +65,23 @@ class FunctionExpressionParameter extends Parameter {
       List<Token> comments, FileSpan span, Identifier name, this.type)
       : super(annotations, comments, span, name);
 }
+
+class RecordExpression extends Expression {
+  final Expression withBinding;
+  final List<RecordKVPair> pairs;
+
+  RecordExpression(
+      List<Token> comments, FileSpan span, this.withBinding, this.pairs)
+      : super(comments, span);
+}
+
+class RecordKVPair extends Expression {
+  final Identifier identifier;
+  final Expression expression;
+
+  RecordKVPair(
+      List<Token> comments, FileSpan span, this.identifier, this.expression)
+      : super(comments, span);
+
+  String get name => identifier.name;
+}

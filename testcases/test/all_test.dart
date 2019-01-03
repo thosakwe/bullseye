@@ -3,7 +3,6 @@ import 'package:bullseye/bullseye.dart';
 //import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:glob/glob.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
@@ -11,6 +10,8 @@ import 'package:kernel/text/ast_to_text.dart';
 import 'package:package_resolver/package_resolver.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+var toSkip = <String>[];
 
 void main() {
   group('identical', testIdenticalOutput);
@@ -24,7 +25,6 @@ void testIdenticalOutput() {
       var blsPath = blsFile.path;
       var name = p.basename(blsPath);
       var dartPath = p.setExtension(blsPath, '.dart');
-      var dartFile = new File(dartPath);
 
       test(name, () async {
         // First, compile the bullseye source.
@@ -89,7 +89,7 @@ void testIdenticalOutput() {
         print('vs. $name from Dart:\n$dartText');
         expect(blsText.toString(), dartText.toString());
       },
-          skip: ['record'].contains(p.basenameWithoutExtension(name))
+          skip: toSkip.contains(p.basenameWithoutExtension(name))
               ? 'Skipping `$name` tests (for now)'
               : null);
     }

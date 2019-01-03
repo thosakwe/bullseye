@@ -1,2 +1,2 @@
 let main () =
-    (fun x => x * 3) 4
+    (fun x -> x * 3) 4
