@@ -40,12 +40,18 @@ class BullseyeKernelTypeCompiler {
 
   k.DartType compileRecord(RecordType ctx, SymbolTable<k.Expression> scope,
       [String name]) {
-    name ??= scope.uniqueName('BullseyeRecord');
+    // Return the type if it already exists.
+    var existing = compiler.library.classes
+        .firstWhere((c) => name != null && c.name == name, orElse: () => null);
+    if (existing != null) return existing.thisType;
+
+    name ??= scope.root.uniqueName('BullseyeRecord');
 
     var clazz = k.Class(
       name: name,
       reference: compiler.getReference(name),
       supertype: compiler.coreTypes.objectClass.asThisSupertype,
+      fileUri: compiler.library.fileUri,
     );
     var fields = <String, k.DartType>{};
     var members = <String, k.Field>{};
@@ -73,6 +79,7 @@ class BullseyeKernelTypeCompiler {
         isFinal: !isMutable[name],
         hasImplicitGetter: true,
         hasImplicitSetter: isMutable[name],
+        fileUri: compiler.library.fileUri,
       );
       clazz.addMember(members[name] = m);
     });
@@ -82,6 +89,7 @@ class BullseyeKernelTypeCompiler {
         entry.key,
         isFieldFormal: true,
         type: entry.value,
+        initializer: k.NullLiteral(),
       );
       //return k.NamedExpression(name, value);
     }).toList();
@@ -94,14 +102,25 @@ class BullseyeKernelTypeCompiler {
         returnType: clazz.thisType,
       ),
       name: k.Name(''),
-      initializers: fields.keys.map((name) {
+      // initializers: fields.keys.map<k.Initializer>((name) {
+      //   return k.FieldInitializer(
+      //     members[name],
+      //     k.VariableGet(
+      //       k.VariableDeclaration(name),
+      //     ),
+      //   );
+      // }),
+      initializers: namedParams.map<k.Initializer>((vDecl) {
         return k.FieldInitializer(
-          members[name],
-          k.VariableGet(
-            k.VariableDeclaration(name),
-          ),
+          members[vDecl.name],
+          k.VariableGet(vDecl),
         );
-      }).followedBy([]).toList(),
+      }).followedBy([
+        k.SuperInitializer(
+          compiler.coreTypes.objectClass.constructors[0],
+          k.Arguments([]),
+        ),
+      ]).toList(),
     ));
 
     // TODO: Add hashCode
@@ -114,16 +133,21 @@ class BullseyeKernelTypeCompiler {
         k.Name('copyWith'),
         k.ProcedureKind.Method,
         k.FunctionNode(
-          k.Block([]),
+          k.Block([
+            k.ReturnStatement(
+              k.NullLiteral(),
+            ),
+          ]),
           namedParameters: namedParams,
           returnType: clazz.thisType,
         ),
+        fileUri: compiler.library.fileUri,
       ),
     );
 
     // TODO: Add toString()
-
-    compiler.library.addClass(clazz);
+    // By this point, the class is already in the library - don't add it twice.
+    // compiler.library.addClass(clazz);
     compiler.classHierarchy.applyTreeChanges([], [compiler.library]);
     return clazz.thisType;
   }

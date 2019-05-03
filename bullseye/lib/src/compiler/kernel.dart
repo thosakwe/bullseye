@@ -449,8 +449,9 @@ class BullseyeKernelCompiler {
           s.create(binding.identifier.name, value: vGet, constant: true);
 
           // Then, just emit it within the body.
-          body.add(new k.VariableDeclaration(binding.identifier.name,
-              initializer: value, type: variable.type));
+          var decl = new k.VariableDeclaration(binding.identifier.name,
+              initializer: value, type: variable.type);
+          body.add(decl);
         }
       } on StateError catch (e) {
         exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,

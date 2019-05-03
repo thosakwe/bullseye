@@ -1,7 +1,8 @@
 type todo = { text: String; completed: bool }
 
 let main () =
-    print 'temp'
-    --let cleanYourRoom = { text = "Clean your room!"; completed = false } in
+    let cleanYourRoom = { text = "Clean your room!"; completed = false } in
+    cleanYourRoom
+    --print cleanYourRoom
     --let dupe = { cleanYourRoom with text = "Do the dishes!" } in
     --dupe.completed

@@ -338,17 +338,15 @@ class BullseyeKernelExpressionCompiler {
           var clazz = typeOf.classNode;
 
           while (clazz != null) {
-            var field = clazz.members.firstWhere(
-                (f) {
-                  if (f is k.Procedure) {
-                    return f.isGetter && f.name.name == ctx.name.name;
-                  } else if (f is k.Field) {
-                    return f.name.name == ctx.name.name && f.hasImplicitGetter;
-                  } else {
-                    return false;
-                  }
-                },
-                orElse: () => null);
+            var field = clazz.members.firstWhere((f) {
+              if (f is k.Procedure) {
+                return f.isGetter && f.name.name == ctx.name.name;
+              } else if (f is k.Field) {
+                return f.name.name == ctx.name.name && f.hasImplicitGetter;
+              } else {
+                return false;
+              }
+            }, orElse: () => null);
 
             if (field != null) {
               return new k.PropertyGet(
