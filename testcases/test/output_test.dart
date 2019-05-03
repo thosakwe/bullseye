@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bullseye/bullseye.dart';
 import 'package:glob/glob.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/text/ast_to_text.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -15,7 +16,7 @@ void onException(BullseyeException exc) {
 }
 
 void testTextOutput() {
-  var glob = Glob('*.bls');
+  var glob = Glob('test/output/*.bls');
   var tempDir = Directory.systemTemp.createTempSync();
 
   for (var blsFile in glob.listSync()) {
@@ -29,6 +30,19 @@ void testTextOutput() {
         var blsComponent = await compileBullseyeToKernel(
             await blsFile.readAsString(), p.toUri(blsPath), onException);
         expect(blsComponent, isNotNull);
+
+        var blsText = new StringBuffer();
+
+        Printer newPrinter(StringBuffer txt) {
+          return new Printer(txt,
+              showExternal: false, showMetadata: false, showOffsets: false);
+        }
+
+        if (blsComponent != null) {
+          newPrinter(blsText).writeComponentFile(blsComponent);
+          print(blsText);
+        }
+
         var dillFile = p.setExtension(p.join(tempDir.path, name), '.dill');
         await writeComponentToBinary(blsComponent, dillFile);
 

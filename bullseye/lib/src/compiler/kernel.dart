@@ -92,8 +92,8 @@ class BullseyeKernelCompiler {
       }
     }
 
-    _component.uriToSource[ctx.span.sourceUrl] =
-        new k.Source(lineStarts, utf8.encode(ss.string));
+    _component.uriToSource[ctx.span.sourceUrl] = new k.Source(
+        lineStarts, utf8.encode(ss.string), library.importUri, library.fileUri);
   }
 
   Future initialize() async {
