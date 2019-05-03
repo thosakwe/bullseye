@@ -5,8 +5,8 @@ environment:
 dependencies:
   bullseye:
     path: ../bullseye
-  front_end: 0.1.6
+  # front_end: 0.1.6
   glob: ^1.0.0
-  kernel: 0.3.6
+  # kernel: 0.3.6
   path: ^1.0.0
   test: ^1.0.0

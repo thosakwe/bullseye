@@ -104,7 +104,7 @@ class BullseyeKernelCompiler {
     coreTypes = new k.CoreTypes(vmPlatform);
     classHierarchy = new k.ClassHierarchy(vmPlatform);
     libraryIndex = new k.LibraryIndex.all(vmPlatform);
-    types = new k.TypeEnvironment(coreTypes, classHierarchy, strongMode: true);
+    types = new k.TypeEnvironment(coreTypes, classHierarchy);
 
     // Read all imports
     await importLibrary(Uri.parse('dart:core'), compilationUnit.span);
@@ -149,12 +149,11 @@ class BullseyeKernelCompiler {
         var libsUri = await computePlatformBinariesLocation();
         var specUri =
             libsUri.replace(path: p.join(libsUri.path, '..', 'libraries.json'));
-        var flags = new TargetFlags(strongMode: true);
+        var flags = new TargetFlags();
         var target = new NoneTarget(flags);
 
         CompilerOptions options = new CompilerOptions()
           ..target = target
-          ..strongMode = target.strongMode
           ..sdkSummary = platformStrongUri
           ..linkedDependencies = [platformStrongUri]
           ..librariesSpecificationUri = specUri

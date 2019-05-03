@@ -27,17 +27,17 @@ main(List<String> args) async {
     var argResults = argParser.parse(args);
     Component outputComponent;
 
-    if (!argResults.wasParsed('out') && argResults['format'] == 'binary') {
-      throw new ArgParserException(
-          'If --out is not defined, blsc can only print binary data to stdout.');
-    }
-
     if (argResults['help'] as bool) {
       stdout
         ..writeln('usage: blsc [options...] <inputs>')
         ..writeln('Options:')
         ..writeln()
         ..writeln(argParser.usage);
+      return;
+    } else if (!argResults.wasParsed('out') &&
+        argResults['format'] == 'binary') {
+      throw new ArgParserException(
+          'If --out is not defined, blsc can only print binary data to stdout.');
     } else if (argResults.rest.isEmpty) {
       throw new ArgParserException('No inputs were provided.');
     } else if (argResults['link'] as bool) {

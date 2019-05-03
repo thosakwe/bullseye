@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:bullseye/bullseye.dart';
 import 'package:cli_repl/cli_repl.dart';
-import 'package:kernel/interpreter/interpreter.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 main(List<String> args) async {
@@ -30,9 +29,11 @@ main(List<String> args) async {
       }
 
       if (!hasFatal) {
+        // TODO: Interpret (maybe via Dart VM service)???
         var component = compiler.toComponent();
-        var interpreter = new Interpreter(component);
-        interpreter.run();
+        print(component);
+        // var interpreter = new Interpreter(component);
+        // interpreter.run();
       }
     }
   }

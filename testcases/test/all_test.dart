@@ -35,12 +35,11 @@ void testIdenticalOutput() {
         var specUri =
             libsUri.replace(path: p.join(libsUri.path, '..', 'libraries.json'));
         var platformStrongUri = libsUri.resolve('vm_platform_strong.dill');
-        var flags = new TargetFlags(strongMode: true);
+        var flags = new TargetFlags();
         var target = new NoneTarget(flags);
 
         CompilerOptions options = new CompilerOptions()
           ..target = target
-          ..strongMode = target.strongMode
           ..sdkSummary = platformStrongUri
           //..linkedDependencies = [platformStrongUri]
           ..librariesSpecificationUri = specUri

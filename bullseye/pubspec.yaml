@@ -2,13 +2,13 @@ name: bullseye
 description: ML-like functional language frontend for Dart Kernel IR.
 version: 0.0.0
 environment:
-  sdk: ">=2.0.0-dev <3.0.0"
+  sdk: ">=2.1.0 <3.0.0"
 dependencies:
   #analyzer: ^0.33.0
   args: ^1.0.0
   cli_repl: ^0.2.0
-  front_end: 0.1.6
-  kernel: 0.3.6
+  front_end: ^0.1.6
+  kernel: 0.3.12
   package_resolver: ^1.0.0
   source_span: ^1.0.0
   string_scanner: ^1.0.0
