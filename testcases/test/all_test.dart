@@ -18,7 +18,7 @@ void main() {
 }
 
 void testIdenticalOutput() {
-  var glob = Glob('*.bls');
+  var glob = Glob('test/cases/*.bls');
 
   for (var blsFile in glob.listSync()) {
     if (blsFile is File) {
