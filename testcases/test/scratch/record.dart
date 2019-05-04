@@ -10,5 +10,5 @@ class todo {
 
 void main() {
   var cleanYourRoom = todo(text: "Clean your room!", completed: false);
-  return print(cleanYourRoom);
+  return print(cleanYourRoom.completed);
 }

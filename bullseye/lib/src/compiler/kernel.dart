@@ -331,7 +331,8 @@ class BullseyeKernelCompiler {
             scope.create(decl.name.name, value: value, constant: true);
 
             if (value.clazz != null) {
-              library.addClass(value.clazz);
+              if (!library.classes.contains(value.clazz))
+                library.addClass(value.clazz);
             } else if (value.typedef$ != null) {
               library.addTypedef(value.typedef$);
             }
@@ -449,9 +450,10 @@ class BullseyeKernelCompiler {
           s.create(binding.identifier.name, value: vGet, constant: true);
 
           // Then, just emit it within the body.
-          var decl = new k.VariableDeclaration(binding.identifier.name,
-              initializer: value, type: variable.type);
-          body.add(decl);
+          //
+          // There was big bug here before. Note that you must use the SAME VariableDeclaration instance.
+          variable.initializer = value;
+          body.add(variable);
         }
       } on StateError catch (e) {
         exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,

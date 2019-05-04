@@ -43,8 +43,14 @@ void testTextOutput() {
         }
 
         if (blsComponent != null) {
-          newPrinter(blsText).writeComponentFile(blsComponent);
-          print(blsText);
+          writeComponentToText(
+            blsComponent,
+            showExternal: true,
+            showMetadata: true,
+            // showOffsets: true,
+          );
+          // newPrinter(blsText).writeComponentFile(blsComponent);
+          // print(blsText);
         }
 
         var dillFile = p.setExtension(p.join(tempDir.path, name), '.dill');

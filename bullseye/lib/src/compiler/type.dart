@@ -147,7 +147,7 @@ class BullseyeKernelTypeCompiler {
 
     // TODO: Add toString()
     // By this point, the class is already in the library - don't add it twice.
-    // compiler.library.addClass(clazz);
+    compiler.library.addClass(clazz);
     compiler.classHierarchy.applyTreeChanges([], [compiler.library]);
     return clazz.thisType;
   }
