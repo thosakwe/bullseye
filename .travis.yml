@@ -1,0 +1,33 @@
+# Created with package:mono_repo v1.2.1
+language: dart
+
+jobs:
+  include:
+    - stage: analyze
+      name: "SDK: dev - DIR: bullseye - TASKS: dartanalyzer ."
+      script: ./tool/travis.sh dartanalyzer
+      env: PKG="bullseye"
+      dart: dev
+    - stage: analyze
+      name: "SDK: dev - DIR: bullseye - TASKS: dartfmt -n --set-exit-if-changed ."
+      script: ./tool/travis.sh dartfmt
+      env: PKG="bullseye"
+      dart: dev
+    - stage: unit_test
+      name: "SDK: dev - DIR: testcases - TASKS: pub run test"
+      script: ./tool/travis.sh test
+      env: PKG="testcases"
+      dart: dev
+
+stages:
+  - unit_test
+  - analyze
+
+# Only building master means that we don't run two builds for each pull request.
+branches:
+  only:
+    - master
+
+cache:
+  directories:
+    - "$HOME/.pub-cache"
