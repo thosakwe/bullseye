@@ -1,0 +1,5 @@
+type todo = { text: String; completed: bool }
+
+let main () =
+    let cleanYourRoom = { text = "Clean your room!"; completed = false } in
+    print cleanYourRoom

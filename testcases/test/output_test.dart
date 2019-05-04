@@ -4,10 +4,16 @@ import 'package:bullseye/bullseye.dart';
 import 'package:glob/glob.dart';
 import 'package:io/ansi.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+var toSkip = <String>[
+  'record_equals',
+  'record_hash',
+  'record_tostring',
+  'record_with'
+];
 
 void main() {
   group('output', testTextOutput);
@@ -26,6 +32,10 @@ void testTextOutput() {
       var blsPath = blsFile.path;
       var textFile = p.setExtension(blsPath, '.txt');
       var name = p.basename(blsPath);
+      String skipReason;
+      if (toSkip.contains(p.basenameWithoutExtension(blsPath))) {
+        skipReason = 'Explicitly skipped.';
+      }
 
       test(name, () async {
         // Compile the Bullseye file, write to a temp file.
@@ -68,7 +78,7 @@ void testTextOutput() {
         var actual = await dart.stdout.transform(utf8.decoder).join();
         var expected = await File(textFile).readAsString();
         expect(actual.trim(), expected.trim());
-      });
+      }, skip: skipReason);
     }
   }
 }
