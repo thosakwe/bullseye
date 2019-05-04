@@ -4,14 +4,14 @@ language: dart
 jobs:
   include:
     - stage: analyze
-      name: "SDK: dev - DIR: bullseye - TASKS: dartanalyzer ."
+      name: "SDK: dev - DIR: bullseye_lang - TASKS: dartanalyzer ."
       script: ./tool/travis.sh dartanalyzer
-      env: PKG="bullseye"
+      env: PKG="bullseye_lang"
       dart: dev
     - stage: analyze
-      name: "SDK: dev - DIR: bullseye - TASKS: dartfmt -n --set-exit-if-changed ."
+      name: "SDK: dev - DIR: bullseye_lang - TASKS: dartfmt -n --set-exit-if-changed ."
       script: ./tool/travis.sh dartfmt
-      env: PKG="bullseye"
+      env: PKG="bullseye_lang"
       dart: dev
     - stage: unit_test
       name: "SDK: dev - DIR: testcases - TASKS: pub run test"
