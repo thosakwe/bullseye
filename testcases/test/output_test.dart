@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:bullseye/bullseye.dart';
+import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:glob/glob.dart';
 import 'package:io/ansi.dart';
 import 'package:kernel/kernel.dart';

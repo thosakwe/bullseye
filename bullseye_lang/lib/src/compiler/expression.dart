@@ -1,4 +1,4 @@
-import 'package:bullseye/bullseye.dart';
+import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:kernel/ast.dart' as k;
 import 'package:source_span/source_span.dart';
 import 'package:symbol_table/symbol_table.dart';

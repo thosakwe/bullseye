@@ -1,4 +1,4 @@
-import 'package:bullseye/bullseye.dart';
+import 'package:bullseye_lang/bullseye_lang.dart';
 
 typedef T PrefixParselet<T>(Parser parser, Token token);
 

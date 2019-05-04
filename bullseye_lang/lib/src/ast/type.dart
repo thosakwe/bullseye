@@ -1,4 +1,4 @@
-import 'package:bullseye/bullseye.dart';
+import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:source_span/src/file.dart';
 
 abstract class TypeNode extends Node {

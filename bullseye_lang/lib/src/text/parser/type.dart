@@ -1,4 +1,4 @@
-import 'package:bullseye/bullseye.dart';
+import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:source_span/source_span.dart';
 
 class TypeParser extends PrattParser<TypeNode> {

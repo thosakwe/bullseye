@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:bullseye/bullseye.dart';
+import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:front_end/src/api_prototype/front_end.dart' as fe;
 import 'package:front_end/src/api_unstable/dart2js.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';

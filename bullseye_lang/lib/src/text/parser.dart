@@ -1,5 +1,5 @@
 import 'dart:collection';
-import 'package:bullseye/bullseye.dart';
+import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:kernel/ast.dart' as k;
 export 'parser/parser.dart';
 

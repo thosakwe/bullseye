@@ -4,8 +4,8 @@ environment:
   sdk: ">=2.1.0 <3.0.0"
 dependencies:
   buffer: ^1.0.0
-  bullseye:
-    path: ../bullseye
+  bullseye_lang:
+    path: ../bullseye_lang
   # front_end: 0.1.6
   glob: ^1.0.0
   io: ^0.3.2

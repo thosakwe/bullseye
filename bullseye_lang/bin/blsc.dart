@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:args/args.dart';
-import 'package:bullseye/bullseye.dart';
+import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:kernel/kernel.dart';
 import 'package:string_scanner/string_scanner.dart';
 

@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:bullseye/bullseye.dart';
+import 'package:bullseye_lang/bullseye_lang.dart';
 //import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';

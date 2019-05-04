@@ -1,4 +1,4 @@
-import 'package:bullseye/bullseye.dart';
+import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:cli_repl/cli_repl.dart';
 import 'package:string_scanner/string_scanner.dart';
 
