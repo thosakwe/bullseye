@@ -5,6 +5,11 @@ import 'package:kernel/kernel.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 var argParser = new ArgParser()
+  ..addFlag('compile-only',
+      abbr: 'c',
+      negatable: false,
+      help:
+          'Compile only the given file, without including imported libraries.')
   ..addFlag('help',
       abbr: 'h',
       negatable: false,
@@ -66,7 +71,8 @@ main(List<String> args) async {
       }
 
       if (!hasFatal) {
-        var compiler = new BullseyeKernelCompiler(unit, parser);
+        var compiler = new BullseyeKernelCompiler(unit, parser,
+            bundleExternal: !(argResults['compile-only'] as bool));
         await compiler.initialize();
         compiler.compile();
         var hasFatal = compiler.exceptions

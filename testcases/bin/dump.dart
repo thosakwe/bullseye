@@ -16,6 +16,6 @@ main(List<String> args) async {
     comp,
     showExternal: true,
     showMetadata: true,
-    showOffsets: true,
+    showOffsets: false,
   );
 }

@@ -50,6 +50,9 @@ class BullseyeKernelCompiler {
   final List<BullseyeException> exceptions = [];
   final Map<Uri, k.Library> loadedLibraries = {};
   final Map<k.VariableGet, k.Reference> procedureReferences = {};
+
+  /// Whether to include imported libraries in the generated component.
+  final bool bundleExternal;
   final CompilationUnit compilationUnit;
   final Parser parser;
   BullseyeKernelExpressionCompiler expressionCompiler;
@@ -69,7 +72,8 @@ class BullseyeKernelCompiler {
 
   bool _compiled = false;
 
-  BullseyeKernelCompiler(this.compilationUnit, this.parser) {
+  BullseyeKernelCompiler(this.compilationUnit, this.parser,
+      {this.bundleExternal = false}) {
     var ctx = compilationUnit;
     // var reference = k.CanonicalName.root()
     //     .getChildFromUri(ctx.span.sourceUrl)
@@ -383,6 +387,13 @@ class BullseyeKernelCompiler {
 
   k.Component toComponent() {
     compile();
+
+    // if (bundleExternal) {
+    //   for (var dep in library.dependencies) {
+    //     _component.libraries.add(dep.targetLibrary);
+    //   }
+    // }
+
     return _component;
   }
 
