@@ -130,44 +130,86 @@ class BullseyeKernelCompiler {
     } else if (loadedLibraries[uri] != null) {
       return loadedLibraries[uri];
     } else {
-      var resolver = await PackageResolver.loadConfig(
-          Uri(scheme: 'file', path: p.join(p.current, '.packages')));
-      var resolved = await resolver.resolveUri(uri);
+      var packagesPath = p.join(p.current, '.packages');
       k.Component component;
+      String packageName;
+
+      var resolver = await PackageResolver.loadConfig(
+          Uri(scheme: 'file', path: packagesPath));
+      var resolved = await resolver.resolveUri(uri);
 
       if (resolved == null) {
         if (uri.scheme == 'package' && uri.pathSegments.isNotEmpty) {
-          var packageName = uri.pathSegments[0];
+          // TODO: Support local URI's
+          packageName = uri.pathSegments[0];
           throw new StateError(
               'Cannot resolve URI $uri. `package:$packageName` seems to not be installed.');
         } else {
           throw new UnsupportedError('Cannot resolve URI $uri.');
         }
+      } else {
+        // Get the
       }
 
+      // TODO: Auto-compile bullseye libraries?
+      // TODO: Use .dill if available
       if (p.extension(resolved.path) == '.dart') {
-        // Compile it via FASTA!
-        var libsUri = await computePlatformBinariesLocation();
-        var specUri =
-            libsUri.replace(path: p.join(libsUri.path, '..', 'libraries.json'));
-        var flags = new TargetFlags();
-        var target = new NoneTarget(flags);
+        // See if we have already pre-compiled the file.
+        // If .packages has been updated, then we need to recompile.
+        var currentVersion = await File.fromUri(resolved).stat();
+        var libraryPath = p.setExtension(
+            p.join(
+              p.current,
+              '.dart_tool',
+              'bullseye',
+              'precompiled',
+              Uri.encodeFull(resolved.toString()),
+            ),
+            '.dill');
+        var versionPath = p.setExtension(libraryPath, '.version.txt');
+        var libFile = File(libraryPath);
+        var versionFile = File(versionPath);
 
-        CompilerOptions options = new CompilerOptions()
-          ..target = target
-          ..sdkSummary = platformStrongUri
-          ..linkedDependencies = [platformStrongUri]
-          ..librariesSpecificationUri = specUri
-          ..packagesFileUri = await resolver.packageConfigUri;
-
-        resolved =
-            resolved.replace(scheme: 'file', path: p.absolute(resolved.path));
-        component = await fe.kernelForComponent([uri], options);
+        // If the library file exists, compare the version.
+        if (await libFile.exists() && await versionFile.exists()) {
+          var lastVersion = await versionFile.readAsString().then(int.parse);
+          if (currentVersion != null &&
+              lastVersion == currentVersion.modified.millisecondsSinceEpoch) {
+            component = await k.loadComponentFromBinary(libraryPath);
+          }
+        }
 
         if (component == null) {
-          throw new StateError('Compilation of file $uri to IR failed.');
+          // Compile it via FASTA!
+          var libsUri = await computePlatformBinariesLocation();
+          var specUri = libsUri.replace(
+              path: p.join(libsUri.path, '..', 'libraries.json'));
+          var flags = new TargetFlags();
+          var target = new NoneTarget(flags);
+
+          CompilerOptions options = new CompilerOptions()
+            ..target = target
+            ..sdkSummary = platformStrongUri
+            ..linkedDependencies = [platformStrongUri]
+            ..librariesSpecificationUri = specUri
+            ..packagesFileUri = await resolver.packageConfigUri;
+
+          resolved =
+              resolved.replace(scheme: 'file', path: p.absolute(resolved.path));
+          component = await fe.kernelForComponent([uri], options);
+
+          if (component == null) {
+            throw new StateError('Compilation of file $uri to IR failed.');
+          } else {
+            // Save the compiled library and version file.
+            await Directory(p.dirname(libraryPath)).create(recursive: true);
+            await versionFile.writeAsString(
+                currentVersion.modified.millisecondsSinceEpoch.toString());
+            await k.writeComponentToBinary(component, libraryPath);
+          }
         }
       } else if (p.extension(resolved.path) != '.dill') {
+        // TODO: Import dill
         throw new UnsupportedError('Cannot import file $uri.');
       }
 
@@ -221,7 +263,6 @@ class BullseyeKernelCompiler {
     void apply(k.Library lib) {
       if (lib == null) return;
       var uri = lib?.importUri;
-      print('Importing $uri...');
 
       if (uri != dartCoreUri)
         library.addDependency(new k.LibraryDependency.import(lib));
