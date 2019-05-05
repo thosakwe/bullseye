@@ -407,7 +407,7 @@ class BullseyeKernelCompiler {
     // TODO: Find a *real* way to dump out multiple components.
     // TODO: Find .dart_tool
     // var glob = Glob('.dart_tool/**/*.dill', recursive: true);
-    
+
     // await for (var entity in glob.list()) {
     //   if (entity is File) {
     //     // print(entity.path);
