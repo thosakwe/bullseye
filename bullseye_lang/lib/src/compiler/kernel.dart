@@ -65,6 +65,7 @@ class BullseyeKernelCompiler {
 
   final k.Component _component = new k.Component();
   final Set<Uri> _imported = new Set();
+  final _lazyTypes = <String, List<TypeWrapper>>{};
 
   bool _compiled = false;
 
@@ -193,6 +194,25 @@ class BullseyeKernelCompiler {
 
   static final Uri dartCoreUri = Uri.parse('dart:core');
 
+  Variable<k.Expression> resolveLazy(
+      String name, FileSpan span, SymbolTable<k.Expression> scope) {
+    var existing = scope.resolve(name);
+    if (existing != null) return existing;
+    if (!_lazyTypes.containsKey(name)) {
+      exceptions.add(BullseyeException(BullseyeExceptionSeverity.error, span,
+          'No symbol named "$name" exists in this context.'));
+      return null;
+    } else if (_lazyTypes[name].length > 1) {
+      var libs = _lazyTypes[name].map((w) => w.libraryName).join(',');
+      exceptions.add(BullseyeException(BullseyeExceptionSeverity.error, span,
+          'The name "$name" is exported by multiple libraries ($libs).'));
+      return null;
+    } else {
+      var type = _lazyTypes[name][0];
+      return this.scope.create(name, value: type, constant: true);
+    }
+  }
+
   Future importLibrary(Uri uri, FileSpan span,
       {String alias,
       List<String> show = const [],
@@ -201,18 +221,39 @@ class BullseyeKernelCompiler {
     void apply(k.Library lib) {
       if (lib == null) return;
       var uri = lib?.importUri;
+      print('Importing $uri...');
 
       if (uri != dartCoreUri)
         library.addDependency(new k.LibraryDependency.import(lib));
 
       if (_imported.add(uri)) {
         bool canImport(String name) {
+          // if (alias != null) {
+          //   print('Skipping $name (no alias yet)');
+          // }
           if (show.isNotEmpty && !show.contains(name)) return false;
           if (hide.isNotEmpty && hide.contains(name)) return false;
-          return true;
+          return !name.startsWith('_');
         }
 
         // Copy in all public symbols from the library...
+        void define(String name, TypeWrapper w) {
+          // If this *exact* type has already been defined; just ignore it.
+          if (_lazyTypes.containsKey(name)) {
+            var existing = _lazyTypes[name];
+            if (existing.any((ww) => w.isEquivalentTo(ww))) {
+              // print('Skipped $name from $uri.');
+              return;
+            }
+          }
+
+          // TODO: Support library wrapper
+          if (alias == null) {
+            _lazyTypes.putIfAbsent(name, () => []).add(w);
+            // print('Lazy-registed $name from $uri.');
+            // scope.create(name, value: w, constant: true);
+          }
+        }
 
         for (var ref in lib.additionalExports) {
           try {
@@ -225,7 +266,7 @@ class BullseyeKernelCompiler {
               var clazz = ref.asClass;
               if (!canImport(clazz.name)) continue;
               var w = new TypeWrapper(clazz.thisType, clazz: clazz);
-              scope.create(clazz.name, value: w, constant: true);
+              define(clazz.name, w);
             }
           } on StateError catch (e) {
             exceptions.add(new BullseyeException(
@@ -237,7 +278,7 @@ class BullseyeKernelCompiler {
           try {
             if (!canImport(clazz.name)) continue;
             var w = new TypeWrapper(clazz.thisType, clazz: clazz);
-            scope.create(clazz.name, value: w, constant: true);
+            define(clazz.name, w);
           } on StateError catch (e) {
             exceptions.add(new BullseyeException(
                 BullseyeExceptionSeverity.error, span, e.message));
@@ -248,7 +289,7 @@ class BullseyeKernelCompiler {
           try {
             if (!canImport(type.name)) continue;
             var w = new TypeWrapper(type.type, typedef$: type);
-            scope.create(type.name, value: w, constant: true);
+            define(type.name, w);
           } on StateError catch (e) {
             exceptions.add(new BullseyeException(
                 BullseyeExceptionSeverity.error, span, e.message));
@@ -561,7 +602,30 @@ class TypeWrapper extends k.Expression {
   final k.Class clazz;
   final k.Typedef typedef$;
 
-  TypeWrapper(this.type, {this.clazz, this.typedef$});
+  TypeWrapper(this.type, {this.clazz, this.typedef$}) {
+    assert(clazz != null || typedef$ != null);
+  }
+
+  String get libraryName {
+    if (clazz != null) {
+      return clazz.enclosingLibrary.name;
+    } else {
+      return typedef$.enclosingLibrary.name;
+    }
+  }
+
+  bool isEquivalentTo(TypeWrapper other) {
+    if (clazz != null) {
+      if (other.clazz == null) return false;
+      return clazz.canonicalName.toString() ==
+          other.clazz.canonicalName.toString();
+    } else if (typedef$ != null) {
+      if (other.typedef$ == null) return false;
+      return typedef$.toString() == other.typedef$.canonicalName.toString();
+    } else {
+      return type == other.type;
+    }
+  }
 
   @override
   accept(k.ExpressionVisitor v) => new k.InvalidExpression(

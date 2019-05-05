@@ -19,7 +19,8 @@ class BullseyeKernelTypeCompiler {
 
   k.DartType compileNamed(NamedType ctx, SymbolTable<k.Expression> scope) {
     // TODO: Library imports
-    var value = scope.resolve(ctx.name.name)?.value;
+    // var value = scope.resolve(ctx.name.name)?.value;
+    var value = compiler.resolveLazy(ctx.name.name, ctx.span, scope)?.value;
 
     if (value == null) {
       compiler.exceptions.add(new BullseyeException(
@@ -71,7 +72,6 @@ class BullseyeKernelTypeCompiler {
       }
     }
 
-    // TODO: Add fields
     fields.forEach((name, type) {
       var m = k.Field(
         k.Name(name),
@@ -94,22 +94,14 @@ class BullseyeKernelTypeCompiler {
       //return k.NamedExpression(name, value);
     }).toList();
 
-    // TODO: Add constructor
-    clazz.addMember(k.Constructor(
+    k.Constructor constructor;
+    clazz.addMember(constructor = k.Constructor(
       k.FunctionNode(
         k.EmptyStatement(),
         namedParameters: namedParams,
         returnType: clazz.thisType,
       ),
       name: k.Name(''),
-      // initializers: fields.keys.map<k.Initializer>((name) {
-      //   return k.FieldInitializer(
-      //     members[name],
-      //     k.VariableGet(
-      //       k.VariableDeclaration(name),
-      //     ),
-      //   );
-      // }),
       initializers: namedParams.map<k.Initializer>((vDecl) {
         return k.FieldInitializer(
           members[vDecl.name],
@@ -135,7 +127,18 @@ class BullseyeKernelTypeCompiler {
         k.FunctionNode(
           k.Block([
             k.ReturnStatement(
-              k.NullLiteral(),
+              k.ConstructorInvocation(
+                constructor,
+                k.Arguments(
+                  [],
+                  // named: namedParams.map((p) {
+                  //   // let final core::int #t1 = 34 in #t1.==(null) ?{core::Object} "" : #t1;
+                  //   // `let v = x in y`
+                  //   k.Expression value = k.VariableGet(p);
+                  //   var isEqual = k.value = k.ConditionalExpression();
+                  // }).toList(),
+                ),
+              ),
             ),
           ]),
           namedParameters: namedParams,

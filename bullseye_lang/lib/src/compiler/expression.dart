@@ -75,7 +75,7 @@ class BullseyeKernelExpressionCompiler {
       return k.BoolLiteral(false);
     }
 
-    var symbol = scope.resolve(ctx.name);
+    var symbol = compiler.resolveLazy(ctx.name, ctx.span, scope);
 
     if (symbol != null) {
       return symbol.value;
@@ -289,7 +289,8 @@ class BullseyeKernelExpressionCompiler {
 
   k.Expression compileNamedCall(
       NamedCallExpression ctx, SymbolTable<k.Expression> scope) {
-    var targetExpr = scope.resolve(ctx.name.name)?.value;
+    var targetExpr =
+        compiler.resolveLazy(ctx.name.name, ctx.span, scope)?.value;
 
     if (targetExpr == null) {
       compiler.exceptions.add(new BullseyeException(

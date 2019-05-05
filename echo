@@ -1,0 +1,3 @@
+fatal error: no *.bls input file was given.
+usage: bullseye [options...] <input.bls>
+	where `options` are forwarded to /usr/local/Cellar/dart/2.3.0-dev.0.3/libexec/bin/dart

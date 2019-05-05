@@ -16,9 +16,9 @@ let main() async =
     end
 
 let configureServer fs : FileSystem =
-    fun app: Angel async =>
+    fun app: Angel async ->
         begin
-            let vDir = VirtualDirectory app fs source=(fs.directory 'web') in
+            let vDir = VirtualDirectory app fs ~source:(fs.directory 'web') in
             app.fallback vDir.handleRequest;
-            app.fallback (fun req res => AngelHttpException.notFound message='404 Not Found')
+            app.fallback (fun req res -> AngelHttpException.notFound ~message:'404 Not Found')
         end

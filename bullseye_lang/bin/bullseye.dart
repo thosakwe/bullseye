@@ -1,32 +1,41 @@
-import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
-import 'package:async/async.dart';
 import 'package:bullseye_lang/bullseye_lang.dart';
-import 'package:cli_repl/cli_repl.dart';
 import 'package:io/ansi.dart';
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as p;
 import 'package:string_scanner/string_scanner.dart';
-import 'package:vm_service_lib/vm_service_lib.dart';
-import 'package:vm_service_lib/vm_service_lib_io.dart';
 
 main(List<String> args) async {
-  Future run(String text, sourceUrl) async {
-    var ss = new SpanScanner(text, sourceUrl: sourceUrl);
+  try {
+    int fnIndex = -1;
+
+    for (int i = 0; i < args.length; i++) {
+      if (args[i].endsWith('.bls')) {
+        fnIndex = i;
+        break;
+      }
+    }
+
+    if (fnIndex == -1) {
+      stderr
+        ..writeln(red.wrap('fatal error: no *.bls input file was given.'))
+        ..writeln(red.wrap('usage: bullseye [options...] <input.bls>'))
+        ..writeln(red.wrap(
+            '\twhere `options` are forwarded to ${Platform.resolvedExecutable}'));
+      exitCode = 65;
+      return;
+    }
+
+    var file = new File(args[fnIndex]);
+    var text = await file.readAsString();
+    var ss = new SpanScanner(text, sourceUrl: file.uri);
     var scanner = new Scanner(ss)..scan();
     var parser = new Parser(scanner);
     var unit = parser.parse();
     var hasFatal = parser.exceptions
         .any((e) => e.severity == BullseyeExceptionSeverity.error);
-    var _ws = RegExp(r'[ \r\n\t]+');
-    Process dart;
     File dillFile;
     Directory tempDir;
-    StreamQueue<String> lines;
-    VmService vmService;
-    VM vm;
-    IsolateRef mainIsolate;
 
     for (var error in parser.exceptions) {
       print(error.toString(showSpan: true, color: true));
@@ -53,63 +62,24 @@ main(List<String> args) async {
 
         // Compile the dill, and save it.
         var component = compiler.toComponent();
+        args[fnIndex] = dillFile.path;
         await writeComponentToBinary(component, dillFile.path);
 
         // Start dart, if it isn't already.
-        if (dart == null) {
-          dart = await Process.start(Platform.resolvedExecutable, [
-            '--observe=0',
-            dillFile.path,
-          ]);
-          dart.stderr
-              .transform(utf8.decoder)
-              .transform(LineSplitter())
-              .map(red.wrap)
-              .listen(stderr.writeln);
-
-          scheduleMicrotask(() async {
-            await dart.exitCode.then((_) {
-              // Reset dart to null...
-              print('Died');
-              dart = null;
-            });
-          });
-
-          var lineStream =
-              dart.stdout.transform(utf8.decoder).transform(LineSplitter());
-          lines = StreamQueue(lineStream);
-
-          while (await lines.hasNext) {
-            var line = await lines.next;
-            if (!line.startsWith('Observatory listening on')) {
-              print(line);
-            } else {
-              var uri = Uri.parse(line.split(_ws).last).replace(scheme: 'ws');
-              vmService = await vmServiceConnectUri(uri.toString());
-              vm = await vmService.getVM();
-              mainIsolate = vm.isolates[0];
-              lines.rest.listen(print);
-              break;
-            }
-          }
-        } else {
-          // Attempt to hot-reload...
-          var report = await vmService.reloadSources(mainIsolate.id);
-          if (!report.success) {
-            print('Reload failed. :(');
-          }
-        }
+        var dart = await Process.start(Platform.resolvedExecutable, args,
+            mode: ProcessStartMode.inheritStdio);
+        exitCode = await dart.exitCode;
       }
+    } else {
+      exitCode = 1;
     }
-  }
-
-  if (args.isNotEmpty) {
-    var file = new File(args[0]);
-    await run(await file.readAsString(), file.uri);
-  } else {
-    var repl = new Repl(prompt: '>> ');
-    for (var line in repl.run()) {
-      await run(line, 'stdin');
+  } catch (e, st) {
+    if (!bool.fromEnvironment('BULLSEYE_DEBUG')) {
+      rethrow;
+    } else {
+      stderr
+        ..writeln(yellow.wrap(e.toString()))
+        ..writeln(yellow.wrap(st.toString()));
     }
   }
 }
