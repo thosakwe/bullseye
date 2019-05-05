@@ -130,7 +130,21 @@ class BullseyeKernelCompiler {
     } else if (loadedLibraries[uri] != null) {
       return loadedLibraries[uri];
     } else {
-      var packagesPath = p.join(p.current, '.packages');
+      String packagesPath = p.join(p.current, '.packages');
+
+      while (true) {
+        var d = p.dirname(packagesPath);
+        if (await File(packagesPath).exists()) {
+          break;
+        } else if (p.dirname(d) != d) {
+          packagesPath = p.join(p.dirname(d), '.packages');
+        } else {
+          throw StateError(
+              'No .packages file was found in ${p.current}, or any of its ancestors. Imports cannot be resolved.');
+        }
+      }
+
+      // var packagesPath = p.join(p.current, '.packages');
       k.Component component;
       String packageName;
 
@@ -478,13 +492,16 @@ class BullseyeKernelCompiler {
       List<Expression> ignoredExpressions,
       Expression returnValue,
       k.AsyncMarker asyncMarker,
-      SymbolTable<k.Expression> scope) {
+      SymbolTable<k.Expression> scope,
+      // Use this if you need to fetch information (i.e. async marker)
+      {BullseyeKernelExpressionCompiler localExprCompiler}) {
     var s = scope.createChild();
     var body = <k.Statement>[];
     var positional = <k.VariableDeclaration>[];
     var named = <k.VariableDeclaration>[];
     var pGets = <ParameterGet>[];
     var requiredCount = 0;
+    localExprCompiler ??= this.expressionCompiler;
 
     // Declare each parameter
     for (var parameter in parameters) {
@@ -524,7 +541,7 @@ class BullseyeKernelCompiler {
               value: vGet, constant: true);
         } else {
           // Register within the current scope.
-          var value = expressionCompiler.compile(binding.value, s);
+          var value = localExprCompiler.compile(binding.value, s);
           if (value == null) return null;
           var variable = new k.VariableDeclaration(binding.identifier.name,
               type: value.getStaticType(types));
@@ -544,8 +561,17 @@ class BullseyeKernelCompiler {
       }
     }
 
+    // Compile all ignored expressions.
+    for (var exp in ignoredExpressions) {
+      var result = localExprCompiler.compile(exp, s);
+      // print('${exp.span.text} => $result');
+      if (result != null) {
+        body.add(k.ExpressionStatement(result));
+      }
+    }
+
     // Compile the return value
-    var retVal = expressionCompiler.compile(returnValue, s);
+    var retVal = localExprCompiler.compile(returnValue, s);
 
     if (retVal == null) {
       // An error has already been emitted, just return null in the meantime.
@@ -553,6 +579,9 @@ class BullseyeKernelCompiler {
     }
 
     var returnType = retVal.getStaticType(types);
+
+    // Get the discovered async marker.
+    asyncMarker = localExprCompiler.asyncMarker;
 
     // Create a Future if necessary
     if (asyncMarker == k.AsyncMarker.Async) {
@@ -578,6 +607,7 @@ class BullseyeKernelCompiler {
     // If there's a failure, make it return null.
     // The compilation error will prevent this from running, but this
     // will make completion, errors, etc. smarter.
+    // print('retVal = $retVal');
     if (retVal == null) {
       var returnNull = new k.ReturnStatement(new k.NullLiteral());
       return new k.FunctionNode(returnNull,
@@ -591,7 +621,7 @@ class BullseyeKernelCompiler {
 
       k.Statement out = new k.Block(body);
 
-      if (letBindings.isEmpty) {
+      if (letBindings.isEmpty && ignoredExpressions.isEmpty) {
         out = new k.ReturnStatement(retVal);
       }
 

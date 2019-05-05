@@ -5,8 +5,10 @@ import 'package:symbol_table/symbol_table.dart';
 
 class BullseyeKernelExpressionCompiler {
   final BullseyeKernelCompiler compiler;
+  k.AsyncMarker asyncMarker;
 
-  BullseyeKernelExpressionCompiler(this.compiler);
+  BullseyeKernelExpressionCompiler(this.compiler,
+      {this.asyncMarker = k.AsyncMarker.Sync});
 
   k.Expression compile(Expression ctx, SymbolTable<k.Expression> scope) {
     if (ctx is Literal) return compileLiteral(ctx, scope);
@@ -184,7 +186,7 @@ class BullseyeKernelExpressionCompiler {
 
   /// Try to infer the types of any ParameterGet instances being passed as function arguments.
   void inferArgumentTypes(k.Arguments args, k.FunctionNode function) {
-    //if (args == null) return;
+    if (args == null) return;
     int i = 0;
 
     void infer(k.Expression expr, k.VariableDeclaration param) {
@@ -419,6 +421,9 @@ class BullseyeKernelExpressionCompiler {
     var target = compile(ctx.target, scope);
 
     if (target != null) {
+      if (asyncMarker != k.AsyncMarker.AsyncStar)
+        asyncMarker = k.AsyncMarker.Async;
+
       return new k.AwaitExpression(target);
     } else {
       // Ostensibly, an error was already reported. Just return null.
@@ -429,12 +434,22 @@ class BullseyeKernelExpressionCompiler {
   k.Expression compileBeginEnd(
       BeginEndExpression ctx, SymbolTable<k.Expression> scope) {
     // TODO: Apply current async marker
+    var localExprCompiler = BullseyeKernelExpressionCompiler(compiler);
     var fnNode = compiler.compileFunctionBody([], ctx.letBindings,
-        ctx.ignoredExpressions, ctx.returnValue, k.AsyncMarker.Sync, scope);
+        ctx.ignoredExpressions, ctx.returnValue, k.AsyncMarker.Sync, scope,
+        localExprCompiler: localExprCompiler);
+    fnNode.asyncMarker = localExprCompiler.asyncMarker;
     if (fnNode == null) return null;
     var closure = new k.FunctionExpression(fnNode);
-    return new k.MethodInvocation(
-        closure, new k.Name('call'), new k.Arguments([]));
+    var call =
+        k.MethodInvocation(closure, new k.Name('call'), new k.Arguments([]));
+
+    if (fnNode.asyncMarker == k.AsyncMarker.Async ||
+        fnNode.asyncMarker == k.AsyncMarker.AsyncStar) {
+      return k.AwaitExpression(call);
+    } else {
+      return call;
+    }
   }
 
   k.Expression compileIndirectCall(
