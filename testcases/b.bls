@@ -1,0 +1,4 @@
+import 'package:path/path.dart'
+
+let main() =
+  print 'hey'

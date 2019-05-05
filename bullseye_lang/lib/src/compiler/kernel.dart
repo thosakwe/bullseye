@@ -5,14 +5,15 @@ import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:front_end/src/api_prototype/front_end.dart' as fe;
 import 'package:front_end/src/api_unstable/dart2js.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
-import 'package:front_end/src/testing/compiler_common.dart';
+import 'package:glob/glob.dart';
+import 'package:kernel/binary/ast_to_binary.dart' as k;
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/text/ast_to_text.dart' as k;
+import 'package:kernel/type_environment.dart' as k;
 import 'package:kernel/class_hierarchy.dart' as k;
 import 'package:kernel/core_types.dart' as k;
 import 'package:kernel/kernel.dart' as k;
 import 'package:kernel/library_index.dart' as k;
-import 'package:kernel/target/targets.dart';
-import 'package:kernel/text/ast_to_text.dart' as k;
-import 'package:kernel/type_environment.dart' as k;
 import 'package:package_resolver/package_resolver.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
@@ -282,8 +283,10 @@ class BullseyeKernelCompiler {
       if (lib == null) return;
       var uri = lib?.importUri;
 
-      if (uri != dartCoreUri)
+      if (uri != dartCoreUri) {
+        print('Depending on ${lib.importUri}');
         library.addDependency(new k.LibraryDependency.import(lib));
+      }
 
       if (_imported.add(uri)) {
         bool canImport(String name) {
@@ -385,15 +388,55 @@ class BullseyeKernelCompiler {
     apply(lib);
   }
 
-  k.Component toComponent() {
+  Future<void> emit(Sink<List<int>> sink) async {
     compile();
+    var cmp = [_component];
+    var p = BullseyeBinaryPrinter(sink, this);
+    // if (bundleExternal)
+    //   cmp.addAll(library.dependencies
+    //       .map((d) => k.Component(libraries: [d.targetLibrary])));
 
-    // if (bundleExternal) {
-    //   for (var dep in library.dependencies) {
-    //     _component.libraries.add(dep.targetLibrary);
+    p.writeComponentFile(_component);
+
+    // TODO: For the love of God, figure out how to link
+    // dependencies together.
+    //
+    // ... WITHOUT the canonical name collision error.
+
+    // Cat ALL dill files from .dart_tool
+    // TODO: Find a *real* way to dump out multiple components.
+    // TODO: Find .dart_tool
+    // var glob = Glob('.dart_tool/**/*.dill', recursive: true);
+    
+    // await for (var entity in glob.list()) {
+    //   if (entity is File) {
+    //     // print(entity.path);
+    //     await entity.openRead().forEach(sink.add);
     //   }
     // }
 
+    // for (var c in cmp) {
+    //   p.writeComponentFile(c);
+    //   c.unbindCanonicalNames();
+    // }
+  }
+
+  // void bundleTo(k.BullseyeBinaryPrinter p) {
+  //   var cmp = [_component];
+  //   cmp.addAll(library.dependencies
+  //       .map((d) => k.Component(libraries: [d.targetLibrary])));
+  //   cmp.forEach(p.writeComponentFile);
+  // }
+
+  // List<int> bundle() {
+  //   var bb = k.BytesSink();
+  //   var p = k.BullseyeBinaryPrinter(bb);
+  //   bundleTo(p);
+  //   return bb.builder.takeBytes();
+  // }
+
+  k.Component toComponent() {
+    compile();
     return _component;
   }
 
@@ -598,7 +641,12 @@ class BullseyeKernelCompiler {
     if (asyncMarker == k.AsyncMarker.Async) {
       // Import `dart:async`.
       var dartAsync = coreTypes.asyncLibrary;
-      library.addDependency(new k.LibraryDependency.import(dartAsync));
+      if (!library.dependencies
+          .any((l) => l.targetLibrary == dartAsync && l.isImport)) {
+        print('IMPORT ASYNC');
+        var dep = k.LibraryDependency.import(dartAsync);
+        library.addDependency(dep);
+      }
 
       // Create a Future<X> type.
       var base = types.unfutureType(returnType);
@@ -724,4 +772,10 @@ class TypeWrapper extends k.Expression {
 
   @override
   visitChildren(k.Visitor v) => null;
+}
+
+class BullseyeBinaryPrinter extends k.BinaryPrinter {
+  final BullseyeKernelCompiler compiler;
+
+  BullseyeBinaryPrinter(Sink<List<int>> sink, this.compiler) : super(sink);
 }

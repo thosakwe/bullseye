@@ -62,9 +62,13 @@ main(List<String> args) async {
         }
 
         // Compile the dill, and save it.
-        var component = compiler.toComponent();
+        // var component = compiler.toComponent();
         args[fnIndex] = dillFile.path;
-        await writeComponentToBinary(component, dillFile.path);
+        var sink = await dillFile.openWrite();
+        await compiler.emit(sink);
+        await sink.close();
+        // await dillFile.writeAsBytes(compiler.bundle());
+        // await writeComponentToBinary(component, dillFile.path);
 
         // Start dart, if it isn't already.
         var dart = await Process.start(Platform.resolvedExecutable, args,

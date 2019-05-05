@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:bullseye_lang/bullseye_lang.dart';
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -31,6 +32,7 @@ main(List<String> args) async {
   try {
     var argResults = argParser.parse(args);
     Component outputComponent;
+    BullseyeKernelCompiler compiler;
 
     if (argResults['help'] as bool) {
       stdout
@@ -71,7 +73,7 @@ main(List<String> args) async {
       }
 
       if (!hasFatal) {
-        var compiler = new BullseyeKernelCompiler(unit, parser,
+        compiler = new BullseyeKernelCompiler(unit, parser,
             bundleExternal: !(argResults['compile-only'] as bool));
         await compiler.initialize();
         compiler.compile();
@@ -109,8 +111,16 @@ main(List<String> args) async {
       writeComponentToText(outputComponent,
           path: isStdout ? null : argResults['out'] as String);
     } else {
-      await writeComponentToBinary(
-          outputComponent, argResults['out'] as String);
+      if (compiler != null) {
+        await compiler.emit(sink);
+      } else {
+        var p = BinaryPrinter(sink);
+        p.writeComponentFile(outputComponent);
+      }
+
+      if (!isStdout) await sink.close();
+      // await writeComponentToBinary(
+      //     outputComponent, argResults['out'] as String);
     }
 
     if (isStdout) await sink.close();
