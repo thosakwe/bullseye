@@ -5,6 +5,8 @@ import 'expression.dart';
 abstract class CallExpression extends Expression {
   final List<Argument> arguments;
 
+  Expression get callee;
+
   CallExpression(List<Token> comments, FileSpan span, this.arguments)
       : super(comments, span);
 }
@@ -34,6 +36,9 @@ class MemberCallExpression extends CallExpression {
   MemberCallExpression(List<Token> comments, FileSpan span,
       List<Argument> arguments, this.target)
       : super(comments, span, arguments);
+
+  @override
+  Expression get callee => target;
 }
 
 class NamedCallExpression extends CallExpression {
@@ -42,6 +47,9 @@ class NamedCallExpression extends CallExpression {
   NamedCallExpression(
       List<Token> comments, FileSpan span, List<Argument> arguments, this.name)
       : super(comments, span, arguments);
+
+  @override
+  Expression get callee => name;
 }
 
 class IndirectCallExpression extends CallExpression {

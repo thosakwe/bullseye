@@ -22,8 +22,18 @@ class ExpressionParser extends PrattParser<Expression> {
       var arg = parseArgument(canParsePositional);
 
       while (arg != null) {
-        canParsePositional = canParsePositional && arg is! NamedArgument;
-        args.add(arg);
+        var e = arg.expression;
+        // Attempt to fold in a smaller call
+        if (e is CallExpression) {
+          args.add(Argument(e.callee));
+          args.addAll(e.arguments);
+          canParsePositional =
+              canParsePositional && !e.arguments.any((a) => a is NamedArgument);
+        } else {
+          canParsePositional = canParsePositional && arg is! NamedArgument;
+          args.add(arg);
+        }
+
         span = span.expand(arg.span);
         arg = parseArgument(canParsePositional);
       }
