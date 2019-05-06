@@ -1,9 +1,9 @@
 -- Data classes are immutable and constant.
 --
 -- They are designed for use with the spread operator "..."
-type Todo = data (text: String; completed: bool = false)
+type todo = { text: String; completed: bool }
 
 let main () =
-    let cleanYourRoom = Todo "Clean your room!" in
-    let dupe = Todo ...cleanYourRoom text = "Do the dishes!" in
-    dupe.completed
+    let cleanYourRoom = { text = "Clean your room!"; completed = false } in
+    let dupe = { cleanYourRoom with text = "Do the dishes!" } in
+    print dupe.text
