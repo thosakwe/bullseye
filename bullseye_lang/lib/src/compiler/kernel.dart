@@ -70,7 +70,7 @@ class BullseyeKernelCompiler {
 
   final k.Component _component = new k.Component();
   final Set<Uri> _imported = new Set();
-  final _lazyTypes = <String, List<TypeWrapper>>{};
+  final _lazyValues = <String, List<k.Expression>>{};
 
   bool _compiled = false;
 
@@ -291,17 +291,20 @@ class BullseyeKernelCompiler {
       String name, FileSpan span, SymbolTable<k.Expression> scope) {
     var existing = scope.resolve(name);
     if (existing != null) return existing;
-    if (!_lazyTypes.containsKey(name)) {
+    if (!_lazyValues.containsKey(name)) {
       exceptions.add(BullseyeException(BullseyeExceptionSeverity.error, span,
           'No symbol named "$name" exists in this context.'));
       return null;
-    } else if (_lazyTypes[name].length > 1) {
-      var libs = _lazyTypes[name].map((w) => w.libraryName).join(',');
+    } else if (_lazyValues[name].length > 1) {
+      var libs = _lazyValues[name]
+          .map((w) => w is TypeWrapper ? w.libraryName : null)
+          .where((x) => x != null)
+          .join(',');
       exceptions.add(BullseyeException(BullseyeExceptionSeverity.error, span,
           'The name "$name" is exported by multiple libraries ($libs).'));
       return null;
     } else {
-      var type = _lazyTypes[name][0];
+      var type = _lazyValues[name][0];
       return this.scope.create(name, value: type, constant: true);
     }
   }
@@ -334,9 +337,10 @@ class BullseyeKernelCompiler {
         // Copy in all public symbols from the library...
         void define(String name, TypeWrapper w) {
           // If this *exact* type has already been defined; just ignore it.
-          if (_lazyTypes.containsKey(name)) {
-            var existing = _lazyTypes[name];
-            if (existing.any((ww) => w.isEquivalentTo(ww))) {
+          if (_lazyValues.containsKey(name)) {
+            var existing = _lazyValues[name];
+            if (existing
+                .any((ww) => ww is TypeWrapper && w.isEquivalentTo(ww))) {
               // print('Skipped $name from $uri.');
               return;
             }
@@ -344,7 +348,7 @@ class BullseyeKernelCompiler {
 
           // TODO: Support library wrapper
           if (alias == null) {
-            _lazyTypes.putIfAbsent(name, () => []).add(w);
+            _lazyValues.putIfAbsent(name, () => []).add(w);
             // print('Lazy-registed $name from $uri.');
             // scope.create(name, value: w, constant: true);
           }
@@ -403,11 +407,21 @@ class BullseyeKernelCompiler {
           if (!name.startsWith('_')) {
             try {
               var ref = member.canonicalName.getReference();
-              var vGet = new k.VariableGet(
-                  new k.VariableDeclaration(name, type: member.getterType));
-              scope.create(name, value: vGet, constant: true);
-              if (member is k.Procedure)
-                procedureReferences[vGet] = ref..node = member;
+
+              // var decl =
+              //     new k.VariableDeclaration(name, type: member.getterType);
+              // var vGet = new k.VariableGet(decl);
+              var vGet = k.StaticGet.byReference(ref);
+
+              // scope.create(name, value: vGet, constant: true);
+              _lazyValues.putIfAbsent(name, () => []).add(vGet);
+
+              // if (member is k.Procedure) {
+              //   var decl =
+              //       new k.VariableDeclaration(name, type: member.getterType);
+              //   var vGet = new k.VariableGet(decl);
+              //   procedureReferences[vGet] = ref..node = member;
+              // }
             } on StateError catch (e) {
               // TODO: Why are some symbols redefined...?
               var existing = scope.resolve(name)?.value?.location?.file;

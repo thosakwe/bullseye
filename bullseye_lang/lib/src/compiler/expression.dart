@@ -260,6 +260,20 @@ class BullseyeKernelExpressionCompiler {
         vGet = targetExpr;
       } else if (targetExpr is ParameterGet) {
         vGet = targetExpr.value;
+      } else if (targetExpr is k.StaticGet) {
+        // If this is a Static get, return a static call.
+        var ref = targetExpr.targetReference;
+
+        if (ref.node is! k.Procedure) {
+          compiler.exceptions.add(new BullseyeException(
+              BullseyeExceptionSeverity.error,
+              span,
+              "Static field '${targetExpr.targetReference.canonicalName.name}' is not a function, and cannot be invoked."));
+          return null;
+        }
+
+        inferArgumentTypes(args, ref.asProcedure.function);
+        return k.StaticInvocation(ref.asProcedure, args);
       }
 
       var ref = compiler.procedureReferences[vGet];
@@ -275,6 +289,7 @@ class BullseyeKernelExpressionCompiler {
         }
       } else {
         // TODO: What if it's a variable...? (maybe make a static function for that?)
+
         compiler.exceptions.add(new BullseyeException(
             BullseyeExceptionSeverity.error,
             span,
