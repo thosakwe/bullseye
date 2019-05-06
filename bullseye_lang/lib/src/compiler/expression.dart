@@ -343,7 +343,9 @@ class BullseyeKernelExpressionCompiler {
           while (clazz != null) {
             var field = clazz.members.firstWhere((f) {
               if (f is k.Procedure) {
-                return f.isGetter && f.name.name == ctx.name.name;
+                // Procedures can be gotten too.
+                return f.name.name == ctx.name.name;
+                // return f.isGetter && f.name.name == ctx.name.name;
               } else if (f is k.Field) {
                 return f.name.name == ctx.name.name && f.hasImplicitGetter;
               } else {
@@ -405,7 +407,7 @@ class BullseyeKernelExpressionCompiler {
           compiler.exceptions.add(new BullseyeException(
               BullseyeExceptionSeverity.error,
               ctx.target.span,
-              "$type has no getter named '${ctx.target.name.name}'."));
+              "$type has no getter named '${ctx.target.name.name}', so this call is invalid."));
           return null;
         }
       }

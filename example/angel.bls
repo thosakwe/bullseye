@@ -5,16 +5,6 @@ import 'package:angel_static/angel_static.dart'
 import 'package:file/file.dart'
 import 'package:file/local.dart'
 
-let main() async =
-    let app = Angel() in
-    let http = AngelHttp app in
-    let lfs = LocalFileSystem() in
-    begin
-        await app.configure (configureServer lfs);
-        await http.startServer InternetAddress.loopbackIpv4 3000;
-        print "Listening at ${http.uri}"
-    end
-
 let configureServer fs : FileSystem =
     fun app: Angel async ->
         begin
@@ -22,3 +12,13 @@ let configureServer fs : FileSystem =
             app.fallback vDir.handleRequest;
             app.fallback (fun req res -> AngelHttpException.notFound ~message:'404 Not Found')
         end
+
+let main() async =
+    let app = Angel() in
+    let http = AngelHttp app in
+    let lfs = LocalFileSystem() in
+    begin
+        await app.configure (configureServer lfs);
+        await http.startServer InternetAddress.loopbackIPv4 3000;
+        print "Listening at ${http.uri}"
+    end

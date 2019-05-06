@@ -1,0 +1,4 @@
+import 'package:mime/mime.dart'
+
+let main() =
+  print (lookupMimeType '.png')

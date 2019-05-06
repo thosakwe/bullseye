@@ -144,6 +144,7 @@ main(List<String> args) async {
       writeComponentToText(outputComponent,
           path: isStdout ? null : argResults['out'] as String);
     } else {
+      // print('???$compiler');
       if (compiler != null) {
         await compiler.emit(sink);
       } else {

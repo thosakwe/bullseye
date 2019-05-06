@@ -48,6 +48,7 @@ Future<k.Component> compileBullseyeToKernel(String source, sourceUrl,
 }
 
 class BullseyeKernelCompiler {
+  final List<k.Component> dependencyComponents = [];
   final List<BullseyeException> exceptions = [];
   final Map<Uri, k.Library> loadedLibraries = {};
   final Map<k.VariableGet, k.Reference> procedureReferences = {};
@@ -271,6 +272,8 @@ class BullseyeKernelCompiler {
         //   //classHierarchy = new k.ClassHierarchy(vmPlatform);
         // }
 
+        dependencyComponents.add(component);
+
         var out = component.libraries.firstWhere((l) => l.importUri == resolved,
             orElse: () => component.libraries[0]);
         //out.importUri = uri;
@@ -319,6 +322,7 @@ class BullseyeKernelCompiler {
 
       if (_imported.add(uri)) {
         bool canImport(String name) {
+          // print('Hm???? ${name} from ${uri}');
           // if (alias != null) {
           //   print('Skipping $name (no alias yet)');
           // }
@@ -387,8 +391,13 @@ class BullseyeKernelCompiler {
           }
         }
 
-        for (var member in lib.members) {
-          var name = member.name.name;
+        var allMembers = lib.members.toList();
+        allMembers.addAll(lib.additionalExports
+            .where((e) => e.node is k.Member)
+            .map((e) => e.asMember));
+
+        for (var member in allMembers) {
+          var name = member.canonicalName.name;
           if (!canImport(name)) continue;
 
           if (!name.startsWith('_')) {
@@ -417,15 +426,16 @@ class BullseyeKernelCompiler {
     apply(lib);
   }
 
-  Future<void> emit(Sink<List<int>> sink) async {
+  Future<void> emit(IOSink sink) async {
     compile();
-    var cmp = [_component];
+    var cmp = [_component, if (bundleExternal) ...dependencyComponents];
     var p = BullseyeBinaryPrinter(sink, this);
-    // if (bundleExternal)
-    //   cmp.addAll(library.dependencies
-    //       .map((d) => k.Component(libraries: [d.targetLibrary])));
 
-    p.writeComponentFile(_component);
+    for (var c in cmp) {
+      // print('Emit ${c.libraries[0].importUri}');
+      p.writeComponentFile(c);
+      await sink.flush();
+    }
 
     // TODO: For the love of God, figure out how to link
     // dependencies together.
