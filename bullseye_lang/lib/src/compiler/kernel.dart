@@ -82,24 +82,26 @@ class BullseyeKernelCompiler {
     expressionCompiler = new BullseyeKernelExpressionCompiler(this);
     typeCompiler = new BullseyeKernelTypeCompiler(this);
 
-    // TODO: This used to have a reference arg
-    library = new k.Library(compilationUnit.span.sourceUrl,
-        fileUri: compilationUnit.span.sourceUrl);
-    _component.libraries.add(library);
+    if (compilationUnit != null && parser != null) {
+      // TODO: This used to have a reference arg
+      library = new k.Library(compilationUnit.span.sourceUrl,
+          fileUri: compilationUnit.span.sourceUrl);
+      _component.libraries.add(library);
 
-    var ss = parser.scanner.scanner;
-    var lineStarts = <int>[];
+      var ss = parser.scanner.scanner;
+      var lineStarts = <int>[];
 
-    while (!ss.isDone) {
-      if (ss.scan('\n')) {
-        lineStarts.add(ss.position);
-      } else {
-        ss.readChar();
+      while (!ss.isDone) {
+        if (ss.scan('\n')) {
+          lineStarts.add(ss.position);
+        } else {
+          ss.readChar();
+        }
       }
-    }
 
-    _component.uriToSource[ctx.span.sourceUrl] = new k.Source(
-        lineStarts, utf8.encode(ss.string), library.importUri, library.fileUri);
+      _component.uriToSource[ctx.span.sourceUrl] = new k.Source(lineStarts,
+          utf8.encode(ss.string), library.importUri, library.fileUri);
+    }
   }
 
   Future initialize() async {
@@ -127,6 +129,48 @@ class BullseyeKernelCompiler {
     }
   }
 
+  Future<String> findPackagesFile({bool throwUnlessFound = false}) async {
+    String packagesPath = p.join(p.current, '.packages');
+
+    while (true) {
+      var d = p.dirname(packagesPath);
+      if (await File(packagesPath).exists()) {
+        return packagesPath;
+      } else if (p.dirname(d) != d) {
+        packagesPath = p.join(p.dirname(d), '.packages');
+      } else {
+        if (!throwUnlessFound) return null;
+        throw StateError(
+            'No .packages file was found in ${p.current}, or any of its ancestors. Imports cannot be resolved.');
+      }
+    }
+  }
+
+  Future<String> findDartToolFile({bool throwUnlessFound = false}) async {
+    String dartToolDir = p.join(p.current, '.dart_tool');
+
+    while (true) {
+      var d = p.dirname(dartToolDir);
+      if (await Directory(dartToolDir).exists()) {
+        return dartToolDir;
+      } else if (p.dirname(d) != d) {
+        dartToolDir = p.join(p.dirname(d), '.dart_tool');
+      } else {
+        if (!throwUnlessFound) return null;
+        throw StateError(
+            'No .dart_tool file was found in ${p.current}, or any of its ancestors. Imports cannot be resolved.');
+      }
+    }
+  }
+
+  Future<PackageResolver> createPackageResolver(
+      {bool throwUnlessFound = false}) async {
+    var packagesPath =
+        await findPackagesFile(throwUnlessFound: throwUnlessFound);
+    return await PackageResolver.loadConfig(
+        Uri(scheme: 'file', path: packagesPath));
+  }
+
   Future<k.Library> loadLibrary(Uri uri) async {
     var lib = libraryIndex.tryGetLibrary(uri.toString());
 
@@ -135,26 +179,11 @@ class BullseyeKernelCompiler {
     } else if (loadedLibraries[uri] != null) {
       return loadedLibraries[uri];
     } else {
-      String packagesPath = p.join(p.current, '.packages');
-
-      while (true) {
-        var d = p.dirname(packagesPath);
-        if (await File(packagesPath).exists()) {
-          break;
-        } else if (p.dirname(d) != d) {
-          packagesPath = p.join(p.dirname(d), '.packages');
-        } else {
-          throw StateError(
-              'No .packages file was found in ${p.current}, or any of its ancestors. Imports cannot be resolved.');
-        }
-      }
-
       // var packagesPath = p.join(p.current, '.packages');
       k.Component component;
       String packageName;
 
-      var resolver = await PackageResolver.loadConfig(
-          Uri(scheme: 'file', path: packagesPath));
+      var resolver = await createPackageResolver();
       var resolved = await resolver.resolveUri(uri);
 
       if (resolved == null) {
@@ -284,7 +313,7 @@ class BullseyeKernelCompiler {
       var uri = lib?.importUri;
 
       if (uri != dartCoreUri) {
-        print('Depending on ${lib.importUri}');
+        // print('Depending on ${lib.importUri}');
         library.addDependency(new k.LibraryDependency.import(lib));
       }
 
@@ -643,7 +672,7 @@ class BullseyeKernelCompiler {
       var dartAsync = coreTypes.asyncLibrary;
       if (!library.dependencies
           .any((l) => l.targetLibrary == dartAsync && l.isImport)) {
-        print('IMPORT ASYNC');
+        // print('IMPORT ASYNC');
         var dep = k.LibraryDependency.import(dartAsync);
         library.addDependency(dep);
       }

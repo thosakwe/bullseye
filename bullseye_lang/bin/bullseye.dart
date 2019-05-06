@@ -4,6 +4,7 @@ import 'package:io/ansi.dart';
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as p;
 import 'package:string_scanner/string_scanner.dart';
+import 'blsc.dart';
 
 main(List<String> args) async {
   try {
@@ -65,10 +66,12 @@ main(List<String> args) async {
         // var component = compiler.toComponent();
         args[fnIndex] = dillFile.path;
         var sink = await dillFile.openWrite();
-        await compiler.emit(sink);
+        // await compiler.emit(sink);
         await sink.close();
         // await dillFile.writeAsBytes(compiler.bundle());
-        // await writeComponentToBinary(component, dillFile.path);
+        var cmp = compiler.toComponent();
+        await linkAllDeps(cmp);
+        await writeComponentToBinary(cmp, dillFile.path);
 
         // Start dart, if it isn't already.
         var dart = await Process.start(Platform.resolvedExecutable, args,
