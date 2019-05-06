@@ -20,6 +20,8 @@ import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:symbol_table/symbol_table.dart';
 
+const bool bullseyeDebug = bool.fromEnvironment('BULLSEYE_DEBUG');
+
 Future<k.Component> compileBullseyeToKernel(String source, sourceUrl,
     void onException(BullseyeException exceptions)) async {
   var ss = new SpanScanner(source, sourceUrl: sourceUrl);
@@ -446,7 +448,7 @@ class BullseyeKernelCompiler {
     var p = BullseyeBinaryPrinter(sink, this);
 
     for (var c in cmp) {
-      // print('Emit ${c.libraries[0].importUri}');
+      if (bullseyeDebug) print('Emit ${c.libraries[0].importUri}');
       p.writeComponentFile(c);
       await sink.flush();
     }
