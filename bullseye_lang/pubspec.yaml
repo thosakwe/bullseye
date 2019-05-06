@@ -2,6 +2,7 @@ name: bullseye_lang
 description: An ML-like functional language frontend for Dart Kernel IR.
 version: 0.0.0
 author: Tobe O <thosakwe@gmail.com>
+homepage: https://github.com/thosakwe/bullseye
 environment:
   sdk: ">=2.2.2 <3.0.0"
 dependencies:
