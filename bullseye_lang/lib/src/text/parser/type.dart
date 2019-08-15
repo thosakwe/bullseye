@@ -97,42 +97,33 @@ class TypeParser extends PrattParser<TypeNode> {
 
     addPrefix(TokenType.lCurly, (p, token) => parseRecordType(token));
 
-    void composite(
-        TokenType delimiter,
-        TypeNode Function(List<Token>, FileSpan, List<TypeNode>) f,
-        bool Function(TypeNode) isType) {
-      addInfix(delimiter, (p, prec, left, token) {
-        var right = p.typeParser.parse();
-        var span = right == null
-            ? null
-            : left.span.expand(token.span).expand(right.span);
+    addInfix(TokenType.times, (p, prec, left, token) {
+      var right = p.typeParser.parse();
+      var span = right == null
+          ? null
+          : left.span.expand(token.span).expand(right.span);
 
-        var items = <TypeNode>[];
+      var items = <TypeNode>[];
 
-        if (isType(left)) {
-          items.addAll((left as CompositeType).items);
-        } else {
-          items.add(left);
-        }
+      if (left is TupleType) {
+        items.addAll(left.items);
+      } else {
+        items.add(left);
+      }
 
-        if (isType(right)) {
-          items.addAll((right as CompositeType).items);
-          return f(left.comments, span, items);
-        } else if (right != null) {
-          items.add(right);
-          return f(left.comments, span, items);
-        } else {
-          p.exceptions.add(new BullseyeException(
-              BullseyeExceptionSeverity.error,
-              token.span,
-              "Missing type after '${token.span.text}'."));
-          return null;
-        }
-      });
-    }
+      if (right is TupleType) {
+        items.addAll(right.items);
+        return TupleType(left.comments, span, items);
+      } else if (right != null) {
+        items.add(right);
+        return TupleType(left.comments, span, items);
+      } else {
+        p.exceptions.add(new BullseyeException(BullseyeExceptionSeverity.error,
+            token.span, "Missing type after '${token.span.text}'."));
+        return null;
+      }
+    });
 
-    composite(TokenType.times, (c, s, i) => new TupleType(c, s, i),
-        (t) => t is TupleType);
     // composite(TokenType.bitwiseOr, (c, s, i) => new UnionType(c, s, i),
     //     (t) => t is UnionType);
     // addInfix(TokenType.nullable,
