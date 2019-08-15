@@ -130,6 +130,28 @@ class TypeParser extends PrattParser<TypeNode> {
     //     (p, prec, left, token) => new NullableType(left, token));
   }
 
+  SumType parseSumType() {}
+
+  SumTypeVariant parseSumTypeVariant() {
+    if (parser.peek()?.type != TokenType.id || !parser.moveNext()) {
+      return null;
+    }
+
+    var name = Identifier(parser.lastComments, parser.current);
+    var span = name.span;
+    TypeNode argument;
+    if (parser.peek()?.type == TokenType.of && parser.moveNext()) {
+      var of = parser.current.span;
+      span = span.expand(of);
+      if ((argument = parser.typeParser.parse()) == null) {
+        parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
+            of, 'Missing type argument after "of".'));
+      }
+    }
+
+    return SumTypeVariant(name.comments, span, name, argument);
+  }
+
   RecordType parseRecordType([Token lCurly]) {
     List<Token> comments;
 
