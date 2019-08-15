@@ -75,6 +75,8 @@ class TypeParser extends PrattParser<TypeNode> {
       }
     });
 
+    addPrefix(TokenType.bitwiseOr, (p, token) => parseSumType(token: token));
+
     addPrefix(TokenType.lParen, (p, token) {
       var innermost = p.typeParser.parse();
 
@@ -124,6 +126,26 @@ class TypeParser extends PrattParser<TypeNode> {
       }
     });
 
+    // The leading "|" is not always there, so handle the case
+    // where we get a named type that is actually a variant.
+    addInfix(TokenType.bitwiseOr, (p, prec, left, token) {
+      if (left is! NamedType) {
+        parser.exceptions.add(BullseyeException(
+            BullseyeExceptionSeverity.error,
+            token.span,
+            'The "|" operator may only be used to declare a sum type.'));
+        return null;
+      } else {
+        return parseSumType(
+          variant: SumTypeVariant(
+            left.comments,
+            left.span,
+            (left as NamedType).name,
+            null,
+          ),
+        );
+      }
+    });
     // composite(TokenType.bitwiseOr, (c, s, i) => new UnionType(c, s, i),
     //     (t) => t is UnionType);
     // addInfix(TokenType.nullable,
