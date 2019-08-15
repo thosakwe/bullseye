@@ -21,6 +21,6 @@ dependencies:
   vm_service_lib: ^3.0.0
 dev_dependencies:
   pedantic: ^1.0.0
-executables:
-  blsc: blsc
-  bullseye: bullseye
+# executables:
+#   blsc: blsc
+#   bullseye: bullseye
