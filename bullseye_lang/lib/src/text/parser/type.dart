@@ -25,7 +25,8 @@ class TypeParser extends PrattParser<TypeNode> {
 
           if (type != null) {
             span = span.expand(type.span);
-            return new TypeDeclaration(annotations, comments, span, name, type);
+            return new TypeDeclaration(annotations, comments, span, name,
+                type..comments.insertAll(0, comments));
           } else {
             parser.exceptions.add(new BullseyeException(
                 BullseyeExceptionSeverity.error,
