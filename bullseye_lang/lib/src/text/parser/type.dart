@@ -130,7 +130,28 @@ class TypeParser extends PrattParser<TypeNode> {
     //     (p, prec, left, token) => new NullableType(left, token));
   }
 
-  SumType parseSumType() {}
+  SumType parseSumType({Token token, SumTypeVariant variant}) {
+    var span = token?.span ?? variant.span, lastSpan = span;
+    var variants = <SumTypeVariant>[];
+    var comments = variant?.comments ?? parser.lastComments;
+    variant ??= parseSumTypeVariant();
+    while (variant != null) {
+      span = span.expand(lastSpan = variant.span);
+      variants.add(variant);
+      if (parser.peek()?.type != TokenType.bitwiseOr || !parser.moveNext()) {
+        break;
+      } else {
+        variant = parseSumTypeVariant();
+      }
+    }
+    if (variants.isEmpty) {
+      parser.exceptions.add(BullseyeException(BullseyeExceptionSeverity.error,
+          lastSpan, 'Sum types must have at least one variant.'));
+      return null;
+    } else {
+      return SumType(comments, span, variants);
+    }
+  }
 
   SumTypeVariant parseSumTypeVariant() {
     if (parser.peek()?.type != TokenType.id || !parser.moveNext()) {
