@@ -207,6 +207,7 @@ class NormalModeScanner extends SubScannerBase {
     'is!': TokenType.isNot,
     'let': TokenType.let,
     'mutable': TokenType.mutable,
+    'of': TokenType.of,
     'proto': TokenType.proto,
     'rec': TokenType.rec,
     'show': TokenType.show,
