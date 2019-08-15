@@ -10,6 +10,8 @@ class TypeParser extends PrattParser<TypeNode> {
     // TODO: annotations
     var annotations = <Annotation>[];
 
+    // TODO: Parse generic types
+
     if (parser.peek()?.type == TokenType.type && parser.moveNext()) {
       var kw = parser.current;
       var span = kw.span, lastSpan = span;

@@ -19,6 +19,7 @@ abstract class NumberLiteral<T extends num> extends Literal<T> {
       : super(comments, span);
 }
 
+@deprecated
 class NullLiteral extends Literal<Null> {
   NullLiteral(List<Token> comments, FileSpan span) : super(comments, span);
 
