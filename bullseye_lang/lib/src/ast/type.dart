@@ -7,6 +7,8 @@ abstract class TypeNode extends Node {
   TypeNode get innermost => this;
 }
 
+// TODO: Function type
+
 class ParenthesizedType extends TypeNode {
   final TypeNode innermost;
 
@@ -22,21 +24,26 @@ class NamedType extends TypeNode {
       : super(comments, span);
 }
 
-abstract class CompositeType extends TypeNode {
+class TupleType extends TypeNode {
   final List<TypeNode> items;
 
-  CompositeType(List<Token> comments, FileSpan span, this.items)
+  TupleType(List<Token> comments, FileSpan span, this.items)
       : super(comments, span);
 }
 
-class TupleType extends CompositeType {
-  TupleType(List<Token> comments, FileSpan span, List<TypeNode> items)
-      : super(comments, span, items);
+class SumType extends TypeNode {
+  final List<SumTypeVariant> variants;
+
+  SumType(List<Token> comments, FileSpan span, this.variants)
+      : super(comments, span);
 }
 
-class UnionType extends CompositeType {
-  UnionType(List<Token> comments, FileSpan span, List<TypeNode> items)
-      : super(comments, span, items);
+class SumTypeVariant extends Node {
+  final Identifier name;
+  final TypeNode argument;
+
+  SumTypeVariant(List<Token> comments, FileSpan span, this.name, this.argument)
+      : super(comments, span);
 }
 
 // class NonNullCoercedType extends TypeNode {
