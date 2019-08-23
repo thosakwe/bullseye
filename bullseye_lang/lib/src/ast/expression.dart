@@ -72,6 +72,43 @@ class FunctionExpressionParameter extends Parameter {
       : super(annotations, comments, span, name);
 }
 
+/// `let identifier = value in body`
+/// `let [functionDeclaration] in body`
+class LetInExpression extends Expression {
+  final Identifier identifier;
+  final Expression value, body;
+  final FunctionDeclaration functionDeclaration;
+
+  LetInExpression(List<Token> comments, FileSpan span, this.identifier,
+      this.value, this.body)
+      : functionDeclaration = null,
+        super(comments, span);
+
+  LetInExpression.forFunction(this.functionDeclaration, this.body)
+      : identifier = null,
+        value = null,
+        super(functionDeclaration.comments, functionDeclaration.span);
+}
+
+/// `left; right`
+class SequenceExpression extends Expression {
+  final Expression left, right;
+
+  SequenceExpression(List<Token> comments, FileSpan span, this.left, this.right)
+      : super(comments, span);
+}
+
+/// `begin returnValue end`
+class BeginEndExpression extends Expression {
+  // final List<LetBinding> letBindings;
+  // final List<Expression> ignoredExpressions;
+  final Expression returnValue;
+
+  BeginEndExpression(List<Token> comments, FileSpan span, this.returnValue)
+      : super(comments, span);
+}
+
+
 class RecordExpression extends Expression {
   final Expression withBinding;
   final List<RecordKVPair> pairs;

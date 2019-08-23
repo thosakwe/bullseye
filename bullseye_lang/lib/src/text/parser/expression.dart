@@ -292,7 +292,7 @@ class ExpressionParser extends PrattParser<Expression> {
     });
     addPrefix(TokenType.begin, (p, token) {
       var span = token.span, lastSpan = span;
-      var letBindings = <LetBinding>[];
+      var letBindings = <LetInExpression>[];
       var ignored = <Expression>[];
 
       var letBinding = p.functionParser.parseLetBinding();

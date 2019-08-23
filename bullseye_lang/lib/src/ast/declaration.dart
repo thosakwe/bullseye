@@ -43,44 +43,11 @@ class TypeDeclaration extends TopLevelDeclaration {
       : super(annotations, comments, span);
 }
 
-class LetBinding extends Node {
-  final Identifier identifier;
-  final Expression value;
-  final FunctionDeclaration functionDeclaration;
-
-  LetBinding(List<Token> comments, FileSpan span, this.identifier, this.value)
-      : functionDeclaration = null,
-        super(comments, span);
-
-  LetBinding.forFunction(this.functionDeclaration)
-      : identifier = null,
-        value = null,
-        super(functionDeclaration.comments, functionDeclaration.span);
-}
-
-class Block extends Node {
-  final List<LetBinding> letBindings;
-  final Expression returnValue;
-
-  Block(List<Token> comments, FileSpan span, this.letBindings, this.returnValue)
-      : super(comments, span);
-}
-
-class BeginEndExpression extends Expression {
-  final List<LetBinding> letBindings;
-  final List<Expression> ignoredExpressions;
-  final Expression returnValue;
-
-  BeginEndExpression(List<Token> comments, FileSpan span, this.letBindings,
-      this.ignoredExpressions, this.returnValue)
-      : super(comments, span);
-}
-
 class FunctionDeclaration extends TopLevelDeclaration {
   final Identifier name;
   final ParameterList parameterList;
   final k.AsyncMarker asyncMarker;
-  final Block body;
+  final Expression body;
 
   FunctionDeclaration(List<Annotation> annotations, List<Token> comments,
       FileSpan span, this.name, this.parameterList, this.asyncMarker, this.body)

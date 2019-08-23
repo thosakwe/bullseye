@@ -15,6 +15,6 @@ class AnnotatedNode extends Node {
       : super(comments, span);
 }
 
-class UnitLiteral extends Node {
+class UnitLiteral extends Expression {
   UnitLiteral(FileSpan span) : super([], span);
 }

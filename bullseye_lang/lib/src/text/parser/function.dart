@@ -17,8 +17,10 @@ class FunctionParser {
       if (parser.peek()?.type == TokenType.id && parser.moveNext()) {
         var id = new Identifier([], parser.current);
         var span = id.span;
-        var defaultBlock =
-            new Block(comments, id.span, [], new NullLiteral([], id.span));
+        // TODO: Add an "unknown type" to signify errors
+        var defaultBody = UnitLiteral(id.span);
+        // var defaultBlock =
+        //     new Block(comments, id.span, [], new NullLiteral([], id.span));
         var parameterList = parseParameterList(id.span, !maybeLetBinding);
 
         if (parameterList != null) {
@@ -29,19 +31,20 @@ class FunctionParser {
           if (parser.peek()?.type == TokenType.equals && parser.moveNext()) {
             var equals = parser.current;
             span = span.expand(equals.span);
-            var block = parseBlock(equals.span);
+            var body = parser.expressionParser.parse();
+            // var body = parseBlock(equals.span);
 
-            if (block != null) {
-              span = span.expand(block.span);
+            if (body != null) {
+              span = span.expand(body.span);
               return new FunctionDeclaration(annotations, comments,
-                  parameterList.span, id, parameterList, asyncMarker, block);
+                  parameterList.span, id, parameterList, asyncMarker, body);
             } else {
               parser.exceptions.add(new BullseyeException(
                   BullseyeExceptionSeverity.error,
                   equals.span,
                   "Expected function body after '='."));
               return new FunctionDeclaration(annotations, comments, span, id,
-                  parameterList, asyncMarker, defaultBlock);
+                  parameterList, asyncMarker, defaultBody);
             }
           } else {
             parser.exceptions.add(new BullseyeException(
@@ -55,7 +58,7 @@ class FunctionParser {
                 id,
                 parameterList,
                 asyncMarker,
-                defaultBlock);
+                defaultBody);
           }
         } else if (maybeLetBinding) {
           return null;
@@ -66,7 +69,7 @@ class FunctionParser {
               "Expected parameter list after identifier."));
           var defaultParameterList = new ParameterList([], id.span, []);
           return new FunctionDeclaration(annotations, comments, id.span, id,
-              defaultParameterList, k.AsyncMarker.Sync, defaultBlock);
+              defaultParameterList, k.AsyncMarker.Sync, defaultBody);
         }
       } else {
         parser.exceptions.add(new BullseyeException(
@@ -82,7 +85,7 @@ class FunctionParser {
 
   Block parseBlock(FileSpan previousSpan) {
     assert(previousSpan != null);
-    var bindings = <LetBinding>[];
+    var bindings = <LetInExpression>[];
     var binding = parseLetBinding();
     var span = binding?.span ?? previousSpan, lastSpan = span;
 
@@ -107,7 +110,7 @@ class FunctionParser {
     }
   }
 
-  LetBinding parseLetBinding() {
+  LetInExpression parseLetBinding() {
     // Try to parse a function declaration.
     var decl = parser.runOrBacktrack(
         () => parseFunctionDeclaration(parser.parseComments(), true));
@@ -121,7 +124,7 @@ class FunctionParser {
             "Expected 'in' after function declaration."));
       }
 
-      return new LetBinding.forFunction(decl);
+      return new LetInExpression.forFunction(decl);
     }
 
     if (parser.peek()?.type == TokenType.let && parser.moveNext()) {
@@ -143,7 +146,7 @@ class FunctionParser {
                   "Expected 'in' after expression."));
             }
 
-            return new LetBinding(id.comments, id.span, id, value);
+            return new LetInExpression(id.comments, id.span, id, value);
           } else {
             parser.exceptions.add(new BullseyeException(
                 BullseyeExceptionSeverity.error,
@@ -153,14 +156,14 @@ class FunctionParser {
             // Skip the `in` keyword, if there was an errant expression.
             if (parser.peek()?.type == TokenType.in$) parser.moveNext();
 
-            return new LetBinding(id.comments, id.span, id, defaultValue);
+            return new LetInExpression(id.comments, id.span, id, defaultValue);
           }
         } else {
           parser.exceptions.add(new BullseyeException(
               BullseyeExceptionSeverity.error,
               id.span,
               "Expected '=' after identifier."));
-          return new LetBinding(id.comments, id.span, id, defaultValue);
+          return new LetInExpression(id.comments, id.span, id, defaultValue);
         }
       } else {
         parser.exceptions.add(new BullseyeException(
