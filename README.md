@@ -1,3 +1,7 @@
+# ARCHIVED
+I have no practical intentions of completing this project, so it's now in an `Archived` state. That being said, I believe it
+serves as a good example of how to generate Dart kernel files. You may also be interested in `package:front_end`.
+
 # bullseye
 [![Pub](https://img.shields.io/pub/v/bullseye_lang.svg)](https://pub.dartlang.org/packages/bullseye_lang)
 [![travis ci](https://travis-ci.org/thosakwe/bullseye.svg)](https://travis-ci.org/thosakwe/bullseye)
