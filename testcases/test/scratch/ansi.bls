@@ -1,4 +1,0 @@
-import 'package:io/ansi.dart'
-
-let main () =
-  print (red.wrap 'Hm')

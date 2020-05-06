@@ -1,2 +1,2 @@
-let main() =
-    print "Hello, Bullseye!"
+let main () =
+  print "Hello, Bullseye!"

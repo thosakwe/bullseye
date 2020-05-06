@@ -1,36 +1,28 @@
-import 'package:flutter/material.dart';
+open "package:flutter/material.dart"
 
-// * Strings can be ad-hoc casted to Text(...) or TextController(...) widgets
-// * Element children can be ad-hoc assigned to "child" or "children" properties
-// * Bullseye supports functions-as-classes, IFF:
-//  * The class in question only has ONE non-implemented method.
-//  * A.K.A. this will work for StatelessWidget and co.
+let main = runApp CounterApp
 
-// Here's an example with a regular class:
-//
-type MyWidget = class extends StatelessWidget
-    @override
-    build context =
-        let body = (
-            <Center>
-                <CircularProgressIndicator />
-            </Center>
-        ) in
+class CounterApp extends MaterialApp =
+  let build context =
+    <MaterialApp home={CounterHome} />
 
-         <Scaffold
-            appBar={<AppBar title="Hello, Bullseye!"/>}
-            body={body}
-        />
-end
+class CounterHome extends StatefulWidget
+  let createState = _CounterHomeState
 
-// Or, with a so-called "functional component":
-//
-let main () =
-    runApp fun (ctx) -> begin
-        let home = MyWidget() in
-        let theme = ThemeData(primarySwatch: Colors.purple) in
-        <MaterialApp
-            home={home}
-            theme={theme}
-        />
-    end
+class _CounterHomeState extends State<CounterHome> =
+  let tapCount = ref 0
+
+  let build context =
+    <Scaffold
+      appBar={<AppBar title={Text "Bullseye Counter App"} />}
+      body={<Center>You have tapped {!tapCount} time(s).</Center>}
+      floatingActionButton={
+        <FloatingActionButton
+          child={Icon Icons.add}
+          onPressed={
+            fun -> begin
+              setState (fun -> tapCount := !tapCount + 1)
+            end
+          } />
+      }
+      />
