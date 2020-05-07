@@ -221,9 +221,6 @@ class Lexer {
                   default:
                     break;
                 }
-                if (tokens.first.type == TokenType.LCURLY) {
-                  states.addFirst(LexerState.normal);
-                }
                 break;
               default:
                 if (tokens.first.type == TokenType.DOLLAR_LCURLY) {
