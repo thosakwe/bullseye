@@ -44,5 +44,5 @@ enum TokenType {
   // Values
   DOUBLE,
   INT,
-  ID,
+  ID
 }
