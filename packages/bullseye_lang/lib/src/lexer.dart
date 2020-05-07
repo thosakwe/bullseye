@@ -1,14 +1,24 @@
+import 'dart:collection';
 import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:string_scanner/string_scanner.dart';
 
+enum LexerState {
+  normal,
+  doubleQuote,
+  singleQuote,
+  tripleDoubleQuote,
+  tripleSingleQuote,
+}
+
 class Lexer {
   final SpanScanner scanner;
+  var errors = <BullseyeError>[];
 
   Lexer(this.scanner);
 
   static final RegExp whiteSpace = RegExp(r'[ \n\r\t]+');
 
-  static final Map<Pattern, TokenType> patterns = {
+  static final Map<Pattern, TokenType> normalPatterns = {
     RegExp(r'--[^\n]*'): TokenType.COMMENT,
 
     // Misc. symbols
@@ -28,30 +38,96 @@ class Lexer {
     '.': TokenType.DOT,
     '...': TokenType.ELLIPSIS,
     '=': TokenType.EQUALS,
+    '<': TokenType.LT,
+    '<=': TokenType.LTE,
+    '>': TokenType.GT,
+    '>=': TokenType.GTE,
+    '&': TokenType.AND,
+    '|': TokenType.OR,
+    '^': TokenType.XOR,
+    '&&': TokenType.BOOL_AND,
+    '||': TokenType.BOOL_OR,
+    '==': TokenType.BOOL_EQUALS,
+    '!=': TokenType.BOOL_NEQ,
+    '!': TokenType.NOT,
 
     // Keywords
+    'abstract': TokenType.ABSTRACT,
     'async': TokenType.ASYNC,
     'await': TokenType.AWAIT,
     'catch': TokenType.CATCH,
+    'class': TokenType.CLASS,
+    'extends': TokenType.EXTENDS,
     'fun': TokenType.FUN,
+    'implements': TokenType.IMPLEMENTS,
     'in': TokenType.IN,
     'let': TokenType.LET,
     'match': TokenType.MATCH,
+    'of': TokenType.OF,
     'open': TokenType.OPEN,
     'try': TokenType.TRY,
+    'type': TokenType.TYPE,
     'with': TokenType.WITH,
 
     // Values
     RegExp(r'[-+]?[0-9]+(\.[0-9]+)?([Ee][-+]?[0-9]+)?'): TokenType.DOUBLE,
+    RegExp(r'[-+]?0[Xx]([A-Fa-f0-9]+)'): TokenType.HEX,
     RegExp(r'[-+]?[0-9]+([Ee][-+]?[0-9]+)?'): TokenType.INT,
-    RegExp(r'[A-Za-z_][A-Za-z0-9_]*'): TokenType.ID,
+    RegExp(r'[A-Za-z_$][A-Za-z0-9_$]*'): TokenType.ID,
+
+    // String delimiters
+    '"': TokenType.DOUBLE_QUOTE,
+    "'": TokenType.SINGLE_QUOTE,
+  };
+
+  static final Map<Pattern, TokenType> genericStringPatterns = {
+    RegExp(r'\$[A-Za-z_$][A-Za-z0-9_$]*'): TokenType.ESCAPED_ID,
+    RegExp(r''): TokenType.ESCAPE_SEQUENCE,
+    RegExp(r''): TokenType.ESCAPE_HEX,
+    RegExp(r''): TokenType.ESCAPE_UNICODE,
+    '\${': TokenType.DOLLAR_LCURLY,
+    '\\\$': TokenType.ESCAPE_DOLLAR,
+  };
+
+  static final Map<Pattern, TokenType> doubleQuotePatterns =
+      Map.of(genericStringPatterns)
+        ..addAll({
+          '\\"': TokenType.ESCAPE_DOUBLE_QUOTE,
+          '"': TokenType.DOUBLE_QUOTE,
+          RegExp(r'[^"]+'): TokenType.TEXT,
+        });
+
+  static final Map<Pattern, TokenType> singleQuotePatterns =
+      Map.of(genericStringPatterns)
+        ..addAll({
+          "\\'": TokenType.ESCAPE_SINGLE_QUOTE,
+          "'": TokenType.SINGLE_QUOTE,
+          RegExp(r"[^']+"): TokenType.TEXT,
+        });
+
+  static final Map<Pattern, TokenType> tripleDoubleQuotePatterns = {
+    '\\"""': TokenType.ESCAPE_TRIPLE_DOUBLE_QUOTE,
+    '"""': TokenType.TRIPLE_DOUBLE_QUOTE,
+    RegExp(r'.+'): TokenType.TEXT,
+  };
+
+  static final Map<Pattern, TokenType> tripleSingleQuotePatterns = {
+    "\\'''": TokenType.ESCAPE_TRIPLE_SINGLE_QUOTE,
+    "'''": TokenType.TRIPLE_SINGLE_QUOTE,
+    RegExp(r'.+'): TokenType.TEXT,
   };
 
   Iterable<Token> produceTokens() sync* {
+    var states = Queue<LexerState>()..addFirst(LexerState.normal);
     LineScannerState errorStart;
 
     void flush() {
-      // TODO: Keep track of syntax errors.
+      if (errorStart != null) {
+        var span = scanner.spanFrom(errorStart);
+        var message = 'Unexpected text "${span.text}".';
+        errors.add(BullseyeError(span, BullseyeErrorSeverity.error, message));
+        errorStart = null;
+      }
     }
 
     while (!scanner.isDone) {
@@ -59,20 +135,74 @@ class Lexer {
       if (scanner.scan(whiteSpace)) {
         continue;
       } else {
+        Map<Pattern, TokenType> patterns;
+        TokenType sentinel;
+        String tripleQuote;
+        bool lookForTripleQuote;
+
+        switch (states.first) {
+          case LexerState.normal:
+            patterns = normalPatterns;
+            sentinel = TokenType.RCURLY;
+            break;
+          case LexerState.doubleQuote:
+            patterns = doubleQuotePatterns;
+            sentinel = TokenType.DOUBLE_QUOTE;
+            break;
+          case LexerState.singleQuote:
+            patterns = singleQuotePatterns;
+            sentinel = TokenType.SINGLE_QUOTE;
+            break;
+          case LexerState.tripleDoubleQuote:
+            patterns = tripleDoubleQuotePatterns;
+            sentinel = TokenType.TRIPLE_DOUBLE_QUOTE;
+            lookForTripleQuote = true;
+            tripleQuote = '"""';
+            break;
+          case LexerState.tripleSingleQuote:
+            patterns = tripleSingleQuotePatterns;
+            sentinel = TokenType.TRIPLE_SINGLE_QUOTE;
+            lookForTripleQuote = true;
+            tripleQuote = "'''";
+            break;
+        }
+
         patterns.forEach((pattern, type) {
           if (scanner.matches(pattern)) {
+            if (lookForTripleQuote &&
+                scanner.lastSpan.text.startsWith(tripleQuote) &&
+                type != sentinel) {
+              return;
+            }
             tokens.add(Token(scanner.lastSpan, type));
           }
         });
 
         if (tokens.isEmpty) {
-          // TODO: Syntax errors
+          errorStart ??= scanner.state;
           scanner.readChar();
         } else {
           flush();
           tokens.sort((b, a) => b.span.length.compareTo(a.span.length));
           scanner.position += tokens.first.span.length;
           yield tokens.first;
+
+          if (tokens.first.type == sentinel) {
+            states.removeFirst();
+          } else {
+            switch (states.first) {
+              case LexerState.normal:
+                if (tokens.first.type == TokenType.LCURLY) {
+                  states.addFirst(LexerState.normal);
+                }
+                break;
+              default:
+                if (tokens.first.type == TokenType.DOLLAR_LCURLY) {
+                  states.addFirst(LexerState.normal);
+                }
+                break;
+            }
+          }
         }
       }
     }

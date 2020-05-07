@@ -6,6 +6,9 @@ class Token {
   final Object value;
 
   Token(this.span, this.type, [this.value]);
+
+  @override
+  String toString() => '${span.start.toolString} => $type';
 }
 
 enum TokenType {
@@ -28,21 +31,57 @@ enum TokenType {
   DOT,
   ELLIPSIS,
   EQUALS,
+  LT,
+  LTE,
+  GT,
+  GTE,
+  AND,
+  OR,
+  XOR,
+  BOOL_AND,
+  BOOL_OR,
+  BOOL_EQUALS,
+  BOOL_NEQ,
+  NOT,
 
   // Keywords
+  ABSTRACT,
   ASYNC,
   AWAIT,
   CATCH,
+  CLASS,
+  EXTENDS,
   FUN,
+  IMPLEMENTS,
   IN,
   LET,
   MATCH,
+  OF,
   OPEN,
   TRY,
+  TYPE,
   WITH,
 
   // Values
   DOUBLE,
+  HEX,
   INT,
-  ID
+  ID,
+
+  // String parts
+  DOUBLE_QUOTE,
+  SINGLE_QUOTE,
+  TRIPLE_DOUBLE_QUOTE,
+  TRIPLE_SINGLE_QUOTE,
+  ESCAPED_ID,
+  ESCAPE_SEQUENCE,
+  ESCAPE_DOLLAR,
+  ESCAPE_HEX,
+  ESCAPE_UNICODE,
+  ESCAPE_DOUBLE_QUOTE,
+  ESCAPE_SINGLE_QUOTE,
+  ESCAPE_TRIPLE_DOUBLE_QUOTE,
+  ESCAPE_TRIPLE_SINGLE_QUOTE,
+  DOLLAR_LCURLY,
+  TEXT,
 }
