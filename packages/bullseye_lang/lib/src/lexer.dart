@@ -24,6 +24,7 @@ class Lexer {
     // Misc. symbols
     '@': TokenType.ARROBA,
     '->': TokenType.ARROW,
+    ':': TokenType.COLON,
     ',': TokenType.COMMA,
     '{': TokenType.LCURLY,
     '}': TokenType.RCURLY,
@@ -78,13 +79,15 @@ class Lexer {
     // String delimiters
     '"': TokenType.DOUBLE_QUOTE,
     "'": TokenType.SINGLE_QUOTE,
+    '"""': TokenType.TRIPLE_DOUBLE_QUOTE,
+    "'''": TokenType.TRIPLE_SINGLE_QUOTE,
   };
 
   static final Map<Pattern, TokenType> genericStringPatterns = {
     RegExp(r'\$[A-Za-z_$][A-Za-z0-9_$]*'): TokenType.ESCAPED_ID,
-    RegExp(r''): TokenType.ESCAPE_SEQUENCE,
-    RegExp(r''): TokenType.ESCAPE_HEX,
-    RegExp(r''): TokenType.ESCAPE_UNICODE,
+    RegExp(r'\\[bfnrt]'): TokenType.ESCAPE_SEQUENCE,
+    RegExp(r'\\x([A-Fa-f0-9][A-Fa-f0-9])'): TokenType.ESCAPE_HEX,
+    RegExp(r'\\u{([A-Fa-f0-9]+)}'): TokenType.ESCAPE_UNICODE,
     '\${': TokenType.DOLLAR_LCURLY,
     '\\\$': TokenType.ESCAPE_DOLLAR,
   };
@@ -138,7 +141,7 @@ class Lexer {
         Map<Pattern, TokenType> patterns;
         TokenType sentinel;
         String tripleQuote;
-        bool lookForTripleQuote;
+        var lookForTripleQuote = false;
 
         switch (states.first) {
           case LexerState.normal:
@@ -174,7 +177,7 @@ class Lexer {
                 type != sentinel) {
               return;
             }
-            tokens.add(Token(scanner.lastSpan, type));
+            tokens.add(Token(scanner.lastSpan, type, scanner.lastMatch));
           }
         });
 
@@ -183,7 +186,7 @@ class Lexer {
           scanner.readChar();
         } else {
           flush();
-          tokens.sort((b, a) => b.span.length.compareTo(a.span.length));
+          tokens.sort((a, b) => b.span.length.compareTo(a.span.length));
           scanner.position += tokens.first.span.length;
           yield tokens.first;
 
@@ -192,6 +195,25 @@ class Lexer {
           } else {
             switch (states.first) {
               case LexerState.normal:
+                switch (tokens.first.type) {
+                  case TokenType.LCURLY:
+                    states.addFirst(LexerState.normal);
+                    break;
+                  case TokenType.DOUBLE_QUOTE:
+                    states.addFirst(LexerState.doubleQuote);
+                    break;
+                  case TokenType.SINGLE_QUOTE:
+                    states.addFirst(LexerState.doubleQuote);
+                    break;
+                  case TokenType.TRIPLE_DOUBLE_QUOTE:
+                    states.addFirst(LexerState.tripleDoubleQuote);
+                    break;
+                  case TokenType.TRIPLE_SINGLE_QUOTE:
+                    states.addFirst(LexerState.tripleSingleQuote);
+                    break;
+                  default:
+                    break;
+                }
                 if (tokens.first.type == TokenType.LCURLY) {
                   states.addFirst(LexerState.normal);
                 }

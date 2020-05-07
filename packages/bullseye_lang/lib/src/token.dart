@@ -3,9 +3,10 @@ import 'package:source_span/source_span.dart';
 class Token {
   final FileSpan span;
   final TokenType type;
+  final Match match;
   final Object value;
 
-  Token(this.span, this.type, [this.value]);
+  Token(this.span, this.type, this.match, [this.value]);
 
   @override
   String toString() => '${span.start.toolString} => $type';
@@ -17,6 +18,7 @@ enum TokenType {
   // Misc. symbols
   ARROBA,
   ARROW,
+  COLON,
   COMMA,
   LCURLY,
   RCURLY,
