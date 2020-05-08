@@ -15,8 +15,12 @@ class ExprParser {
           span = name.span,
           lastSpan = span;
       if (!parser.nextIs(TokenType.EQUALS)) {
-        parser.emitError(lastSpan, 'Missing "=" after identifier.');
-        return null;
+        if (requireNamed) {
+          parser.emitError(lastSpan, 'Missing "=" after identifier.');
+          return null;
+        } else {
+          return ArgNode(name.span, null, name);
+        }
       } else {
         span = span.expand(lastSpan = parser.lastToken.span);
         var value = parseExpression();
@@ -24,7 +28,7 @@ class ExprParser {
           parser.emitError(lastSpan, 'Missing expression after "=".');
           return null;
         } else {
-          return ArgNode(value.span, null, value);
+          return ArgNode(value.span, name, value);
         }
       }
     } else {
@@ -50,7 +54,7 @@ class ExprParser {
     // TODO: Infix
     var left = parseUnaryExpression(allowDefinitions: allowDefinitions);
 
-    if (!allowCalls) {
+    if (!allowCalls || left == null) {
       return left;
     } else {
       var span = left.span, lastSpan = span;
@@ -66,6 +70,7 @@ class ExprParser {
         }
         span = span.expand(lastSpan = arg.span);
         requireNamed = requireNamed || (arg.name != null);
+        args.add(arg);
         arg = parseArg(requireNamed, lastSpan);
       }
       if (args.isEmpty) {
