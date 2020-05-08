@@ -92,9 +92,12 @@ class ExprParser {
     }
 
     // IntLiteral
-    else if (parser.nextIsAnyOf([TokenType.HEX, TokenType.INT])) {
+    else if (parser.nextIs(TokenType.HEX)) {
       return IntLiteralNode(
           parser.lastToken.span, int.parse(parser.lastToken.span.text));
+    } else if (parser.nextIs(TokenType.INT)) {
+      return IntLiteralNode(parser.lastToken.span,
+          double.parse(parser.lastToken.span.text).toInt());
     }
 
     // DoubleLiteral

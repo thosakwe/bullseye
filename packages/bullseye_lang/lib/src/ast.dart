@@ -75,6 +75,7 @@ class BeginEndNode extends ExprNode {
 
   BeginEndNode(FileSpan span, this.body) : super(span);
 }
+
 class ParenExprNode extends ExprNode {
   final ExprNode inner;
 
@@ -114,3 +115,11 @@ abstract class PatternNode extends Node {
 abstract class TypeNode extends Node {
   TypeNode(FileSpan span) : super(span);
 }
+
+class TypeRefNode extends TypeNode {
+  final IdNode name;
+
+  TypeRefNode(FileSpan span, this.name) : super(span);
+}
+
+// TODO: Other types

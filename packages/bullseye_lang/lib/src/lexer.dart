@@ -84,7 +84,7 @@ class Lexer {
     'with': TokenType.WITH,
 
     // Values
-    RegExp(r'[-+]?[0-9]+(\.[0-9]+)?([Ee][-+]?[0-9]+)?'): TokenType.DOUBLE,
+    RegExp(r'[-+]?[0-9]+(\.[0-9]+)([Ee][-+]?[0-9]+)?'): TokenType.DOUBLE,
     RegExp(r'[-+]?0[Xx]([A-Fa-f0-9]+)'): TokenType.HEX,
     RegExp(r'[-+]?[0-9]+([Ee][-+]?[0-9]+)?'): TokenType.INT,
     RegExp(r'[A-Za-z_$][A-Za-z0-9_$]*'): TokenType.ID,

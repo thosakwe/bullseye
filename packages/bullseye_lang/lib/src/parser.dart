@@ -8,6 +8,7 @@ class Parser {
 
   final Queue<Token> _tokenQueue = Queue();
   ExprParser _exprParser;
+  TypeParser _typeParser;
   Token _lastToken;
 
   Parser(Iterable<Token> tokens, this.errors) : tokens = tokens.iterator;
@@ -16,6 +17,8 @@ class Parser {
       Parser(lexer.produceTokens(), lexer.errors);
 
   ExprParser get exprParser => _exprParser ??= ExprParser(this);
+
+  TypeParser get typeParser => _typeParser ??= TypeParser(this);
 
   Token get lastToken => _lastToken;
 
