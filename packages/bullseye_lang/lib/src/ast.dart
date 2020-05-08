@@ -30,6 +30,10 @@ class DoubleLiteralNode extends ExprNode {
   DoubleLiteralNode(FileSpan span, this.value) : super(span);
 }
 
+class UnitLiteralNode extends ExprNode {
+  UnitLiteralNode(FileSpan span) : super(span);
+}
+
 class AwaitExprNode extends ExprNode {
   final ExprNode target;
 
@@ -66,4 +70,36 @@ class LetInNode extends ExprNode {
       : super(span);
 }
 
-class ArgListNode extends Node {}
+class ArgListNode extends Node {
+  final List<ArgNode> args;
+
+  ArgListNode(FileSpan span, this.args) : super(span);
+}
+
+class ArgNode extends Node {
+  final IdNode name;
+  final ExprNode value;
+
+  ArgNode(FileSpan span, this.name, this.value) : super(span);
+}
+
+class ParamListNode extends Node {
+  final List<ParamNode> params;
+
+  ParamListNode(FileSpan span, this.params) : super(span);
+}
+
+class ParamNode extends Node {
+  final PatternNode pattern;
+  final ExprNode defaultValue;
+
+  ParamNode(FileSpan span, this.pattern, this.defaultValue) : super(span);
+}
+
+abstract class PatternNode extends Node {
+  PatternNode(FileSpan span) : super(span);
+}
+
+abstract class TypeNode extends Node {
+  TypeNode(FileSpan span) : super(span);
+}
