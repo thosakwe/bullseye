@@ -30,8 +30,8 @@ class DoubleLiteralNode extends ExprNode {
   DoubleLiteralNode(FileSpan span, this.value) : super(span);
 }
 
-class UnitLiteralNode extends ExprNode {
-  UnitLiteralNode(FileSpan span) : super(span);
+class VoidLiteralNode extends ExprNode {
+  VoidLiteralNode(FileSpan span) : super(span);
 }
 
 class AwaitExprNode extends ExprNode {
@@ -68,6 +68,17 @@ class LetInNode extends ExprNode {
 
   LetInNode(FileSpan span, this.name, this.paramList, this.value, this.body)
       : super(span);
+}
+
+class BeginEndNode extends ExprNode {
+  final List<ExprNode> body;
+
+  BeginEndNode(FileSpan span, this.body) : super(span);
+}
+class ParenExprNode extends ExprNode {
+  final ExprNode inner;
+
+  ParenExprNode(FileSpan span, this.inner) : super(span);
 }
 
 class ArgListNode extends Node {

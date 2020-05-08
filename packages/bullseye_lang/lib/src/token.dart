@@ -67,6 +67,7 @@ enum TokenType {
   MATCH,
   OF,
   OPEN,
+  THROW,
   TRY,
   TYPE,
   WITH,

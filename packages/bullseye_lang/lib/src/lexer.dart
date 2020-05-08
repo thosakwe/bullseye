@@ -78,6 +78,7 @@ class Lexer {
     'match': TokenType.MATCH,
     'of': TokenType.OF,
     'open': TokenType.OPEN,
+    'throw': TokenType.THROW,
     'try': TokenType.TRY,
     'type': TokenType.TYPE,
     'with': TokenType.WITH,
