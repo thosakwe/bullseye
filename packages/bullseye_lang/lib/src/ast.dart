@@ -6,6 +6,33 @@ abstract class Node {
   Node(this.span);
 }
 
+class CompilationUnitNode extends Node {
+  final List<DirectiveNode> directives;
+  final List<DeclNode> decls;
+
+  CompilationUnitNode(FileSpan span, this.directives, this.decls) : super(span);
+}
+
+abstract class DirectiveNode extends Node {
+  DirectiveNode(FileSpan span) : super(span);
+}
+
+class ImportDirectiveNode extends DirectiveNode {
+  final bool isExport;
+  final StringLiteralNode path;
+  final List<ImportModifierNode> modifiers;
+
+  ImportDirectiveNode(FileSpan span, this.isExport, this.path, this.modifiers)
+      : super(span);
+}
+
+class ImportModifierNode extends Node {
+  final bool isHide;
+  final List<IdExprNode> names;
+
+  ImportModifierNode(FileSpan span, this.isHide, this.names) : super(span);
+}
+
 abstract class DeclNode extends Node {
   DeclNode(FileSpan span) : super(span);
 }

@@ -9,6 +9,7 @@ class Parser {
   final Queue<Token> _tokenQueue = Queue();
   var _isDone = false;
   DeclParser _declParser;
+  DirectiveParser _directiveParser;
   ExprParser _exprParser;
   PatternParser _patternParser;
   TypeParser _typeParser;
@@ -20,6 +21,9 @@ class Parser {
       Parser(lexer.produceTokens(), lexer.errors);
 
   DeclParser get declParser => _declParser ??= DeclParser(this);
+
+  DirectiveParser get directiveParser =>
+      _directiveParser ??= DirectiveParser(this);
 
   ExprParser get exprParser => _exprParser ??= ExprParser(this);
 
@@ -57,5 +61,39 @@ class Parser {
 
   void emitError(FileSpan lastSpan, String message) {
     errors.add(BullseyeError(lastSpan, BullseyeErrorSeverity.error, message));
+  }
+
+  CompilationUnitNode parseCompilationUnit(FileSpan emptySpan) {
+    var directives = <DirectiveNode>[];
+    var decls = <DeclNode>[];
+    FileSpan span;
+
+    var directive = directiveParser.parseDirective();
+    while (directive != null) {
+      directives.add(directive);
+      if (span == null) {
+        span = directive.span;
+      } else {
+        span = span.expand(directive.span);
+      }
+      directive = directiveParser.parseDirective();
+    }
+
+    var decl = declParser.parseDecl();
+    while (decl != null) {
+      decls.add(decl);
+      if (span == null) {
+        span = decl.span;
+      } else {
+        span = span.expand(decl.span);
+      }
+      decl = declParser.parseDecl();
+    }
+
+    if (directives.isEmpty && decls.isEmpty) {
+      return CompilationUnitNode(emptySpan, [], []);
+    } else {
+      return CompilationUnitNode(span, directives, decls);
+    }
   }
 }

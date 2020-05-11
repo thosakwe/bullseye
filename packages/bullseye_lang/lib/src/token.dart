@@ -61,6 +61,7 @@ enum TokenType {
   CATCH,
   CLASS,
   END,
+  EXPORT,
   EXTENDS,
   FUN,
   HIDE,

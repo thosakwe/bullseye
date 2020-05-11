@@ -72,6 +72,7 @@ class Lexer {
     'catch': TokenType.CATCH,
     'class': TokenType.CLASS,
     'end': TokenType.END,
+    'export': TokenType.EXPORT,
     'extends': TokenType.EXTENDS,
     'fun': TokenType.FUN,
     'hide': TokenType.HIDE,

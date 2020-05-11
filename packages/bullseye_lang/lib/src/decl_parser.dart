@@ -6,7 +6,7 @@ class DeclParser {
 
   DeclParser(this.parser);
 
-  DeclNode parseDeclNode() {
+  DeclNode parseDecl() {
     if (parser.nextIs(TokenType.LET)) {
       var span = parser.lastToken.span, lastSpan = span;
       if (!parser.nextIs(TokenType.ID)) {
