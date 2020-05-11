@@ -1,15 +1,15 @@
 import 'package:bullseye_lang/bullseye_lang.dart';
 
-abstract class DirectiveVisitor<T> {
+abstract class DirectiveNodeVisitor<T> {
   T visitImportDirective(ImportDirectiveNode node);
 }
 
-abstract class DeclVisitor<T> {
+abstract class DeclNodeVisitor<T> {
   T visitTypeDecl(TypeDeclNode node);
   T visitLetDecl(LetDeclNode node);
 }
 
-abstract class ExprVisitor<T> {
+abstract class ExprNodeVisitor<T> {
   T visitIdExpr(IdExprNode node);
   T visitIntLiteral(IntLiteralNode node);
   T visitDoubleLiteral(DoubleLiteralNode node);
@@ -24,16 +24,16 @@ abstract class ExprVisitor<T> {
   T visitParenExpr(ParenExprNode node);
 }
 
-abstract class StringPartVisitor<T> {
+abstract class StringPartNodeVisitor<T> {
   T visitTextStringPart(TextStringPartNode node);
   T visitInterpolationStringPart(InterpolationStringPartNode node);
 }
 
-abstract class TypeVisitor<T> {
+abstract class TypeNodeVisitor<T> {
   T visitTypeRef(TypeRefNode node);
 }
 
-abstract class PatternVisitor<T> {
+abstract class PatternNodeVisitor<T> {
   T visitIdPattern(IdPatternNode node);
   T visitIgnoredPattern(IgnoredPatternNode node);
   T visitAliasedPattern(AliasedPatternNode node);
