@@ -152,7 +152,7 @@ class ExprParser {
       }
     }
 
-    // THROW
+    // Throw
     else if (parser.nextIs(TokenType.THROW)) {
       var span = parser.lastToken.span;
       var target = parseExpression(allowCalls: true);
@@ -163,6 +163,48 @@ class ExprParser {
         span = span.expand(target.span);
         return ThrowExprNode(span, target);
       }
+    }
+
+    // LetIn
+    else if (allowDefinitions && parser.nextIs(TokenType.LET)) {
+      var span = parser.lastToken.span, lastSpan = span;
+      if (!parser.nextIs(TokenType.ID)) {
+        parser.emitError(lastSpan, 'Missing identifier after "let".');
+        return null;
+      }
+
+      var name = IdExprNode(parser.lastToken.span);
+      span = span.expand(lastSpan = name.span);
+
+      var paramList = parser.declParser.parseParamList(lastSpan);
+      span = span.expand(lastSpan = paramList.span);
+      if (!parser.nextIs(TokenType.EQUALS)) {
+        parser.emitError(lastSpan, 'Missing "=".');
+        return null;
+      }
+
+      span = span.expand(lastSpan = parser.lastToken.span);
+      var value = parseExpression(allowDefinitions: true);
+      if (value == null) {
+        parser.emitError(lastSpan, 'Missing expression after "=".');
+        return null;
+      }
+
+      span = span.expand(lastSpan = value.span);
+      if (!parser.nextIs(TokenType.IN)) {
+        parser.emitError(lastSpan, 'Missing "in".');
+        return null;
+      }
+
+      span = span.expand(lastSpan = parser.lastToken.span);
+      var body = parseExpression(allowDefinitions: true);
+      if (body == null) {
+        parser.emitError(lastSpan, 'Missing expression after "in".');
+        return null;
+      }
+
+      span = span.expand(body.span);
+      return LetInNode(span, name, paramList, value, body);
     }
 
     // BeginEnd

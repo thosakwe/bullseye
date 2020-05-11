@@ -8,6 +8,7 @@ class Parser {
 
   final Queue<Token> _tokenQueue = Queue();
   var _isDone = false;
+  DeclParser _declParser;
   ExprParser _exprParser;
   PatternParser _patternParser;
   TypeParser _typeParser;
@@ -17,6 +18,8 @@ class Parser {
 
   factory Parser.fromLexer(Lexer lexer) =>
       Parser(lexer.produceTokens(), lexer.errors);
+
+  DeclParser get declParser => _declParser ??= DeclParser(this);
 
   ExprParser get exprParser => _exprParser ??= ExprParser(this);
 

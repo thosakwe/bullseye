@@ -13,16 +13,11 @@ class _CounterHomeState extends State<CounterHome> =
   let tapCount = ref 0
 
   let build context =
-    <Scaffold
-      appBar={<AppBar title={Text "Bullseye Counter App"} />}
-      body={<Center>You have tapped {!tapCount} time(s).</Center>}
-      floatingActionButton={
-        <FloatingActionButton
-          child={Icon Icons.add}
-          onPressed={
-            fun -> begin
-              setState (fun -> tapCount := !tapCount + 1)
-            end
-          } />
-      }
-      />
+    Scaffold
+      appBar=(AppBar title=(Text "Counter App"))
+      body=(Center child=(Text "You have tapped ${!tapCount} time(s)"))
+      floatingActionButton=(
+        FloatingActionButton
+          child=(Icon Icons.add)
+          onPressed=fun ->
+            setState (fun -> tapCount := !tapCount + 1))

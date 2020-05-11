@@ -1,4 +1,5 @@
 export 'src/ast.dart';
+export 'src/decl_parser.dart';
 export 'src/error.dart';
 export 'src/expr_parser.dart';
 export 'src/lexer.dart';
