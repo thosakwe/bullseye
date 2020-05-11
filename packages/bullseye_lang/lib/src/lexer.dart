@@ -64,6 +64,7 @@ class Lexer {
 
     // Keywords
     'abstract': TokenType.ABSTRACT,
+    'as': TokenType.AS,
     'async': TokenType.ASYNC,
     'await': TokenType.AWAIT,
     'begin': TokenType.BEGIN,
@@ -72,12 +73,14 @@ class Lexer {
     'end': TokenType.END,
     'extends': TokenType.EXTENDS,
     'fun': TokenType.FUN,
+    'hide': TokenType.HIDE,
     'implements': TokenType.IMPLEMENTS,
+    'import': TokenType.IMPORT,
     'in': TokenType.IN,
     'let': TokenType.LET,
     'match': TokenType.MATCH,
     'of': TokenType.OF,
-    'open': TokenType.OPEN,
+    'show': TokenType.SHOW,
     'throw': TokenType.THROW,
     'try': TokenType.TRY,
     'type': TokenType.TYPE,

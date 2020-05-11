@@ -248,7 +248,7 @@ class ExprParser {
           value = '\r';
           break;
         case 't':
-          return TextStringPartNode(parser.lastToken.span, value);
+          value = '\t';
           break;
         default:
           parser.emitError(parser.lastToken.span,

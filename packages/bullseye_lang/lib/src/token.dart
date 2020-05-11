@@ -53,6 +53,7 @@ enum TokenType {
 
   // Keywords
   ABSTRACT,
+  AS,
   ASYNC,
   AWAIT,
   BEGIN,
@@ -61,12 +62,14 @@ enum TokenType {
   END,
   EXTENDS,
   FUN,
+  HIDE,
   IMPLEMENTS,
+  IMPORT,
   IN,
   LET,
   MATCH,
   OF,
-  OPEN,
+  SHOW,
   THROW,
   TRY,
   TYPE,

@@ -1,4 +1,4 @@
-open "package:flutter/material.dart"
+import "package:flutter/material.dart"
 
 let main = runApp CounterApp
 

@@ -1,7 +1,7 @@
-open "package:angel_framework/angel_framework.dart"
-open "package:angel_framework/http.dart"
-open "package:logging/logging.dart"
-open "package:pretty_logging/pretty_logging.dart"
+import "package:angel_framework/angel_framework.dart"
+import "package:angel_framework/http.dart"
+import "package:logging/logging.dart"
+import "package:pretty_logging/pretty_logging.dart"
 
 let async main =
   -- TODO: Cascades
