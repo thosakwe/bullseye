@@ -27,6 +27,10 @@ class ImportDirectiveNode extends DirectiveNode {
 
   ImportDirectiveNode(FileSpan span, this.isExport, this.path, this.modifiers)
       : super(span);
+
+  @override
+  T accept<T>(DirectiveVisitor<T> visitor) =>
+      visitor.visitImportDirective(this);
 }
 
 class ImportModifierNode extends Node {
@@ -49,6 +53,9 @@ class LetDeclNode extends DeclNode {
 
   LetDeclNode(FileSpan span, this.name, this.paramList, this.value)
       : super(span);
+
+  @override
+  T accept<T>(DeclVisitor<T> visitor) => visitor.visitLetDecl(this);
 }
 
 class TypeDeclNode extends DeclNode {
@@ -57,6 +64,9 @@ class TypeDeclNode extends DeclNode {
   final TypeNode type;
 
   TypeDeclNode(FileSpan span, this.id, this.params, this.type) : super(span);
+
+  @override
+  T accept<T>(DeclVisitor<T> visitor) => visitor.visitTypeDecl(this);
 }
 
 abstract class ExprNode extends Node {
@@ -71,28 +81,43 @@ class IdExprNode extends ExprNode {
   IdExprNode(FileSpan span, [this._name]) : super(span);
 
   String get name => _name ??= span.text;
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitIdExpr(this);
 }
 
 class IntLiteralNode extends ExprNode {
   final int value;
 
   IntLiteralNode(FileSpan span, this.value) : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitIntLiteral(this);
 }
 
 class DoubleLiteralNode extends ExprNode {
   final double value;
 
   DoubleLiteralNode(FileSpan span, this.value) : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitDoubleLiteral(this);
 }
 
 class VoidLiteralNode extends ExprNode {
   VoidLiteralNode(FileSpan span) : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitVoidLiteral(this);
 }
 
 class StringLiteralNode extends ExprNode {
   final List<StringPartNode> parts;
 
   StringLiteralNode(FileSpan span, this.parts) : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitStringLiteral(this);
 }
 
 abstract class StringPartNode extends Node {
@@ -105,18 +130,29 @@ class TextStringPartNode extends StringPartNode {
   final String text;
 
   TextStringPartNode(FileSpan span, this.text) : super(span);
+
+  @override
+  T accept<T>(StringPartVisitor<T> visitor) =>
+      visitor.visitTextStringPart(this);
 }
 
 class InterpolationStringPartNode extends StringPartNode {
   final ExprNode expr;
 
   InterpolationStringPartNode(FileSpan span, this.expr) : super(span);
+
+  @override
+  T accept<T>(StringPartVisitor<T> visitor) =>
+      visitor.visitInterpolationStringPart(this);
 }
 
 class AwaitExprNode extends ExprNode {
   final ExprNode target;
 
   AwaitExprNode(FileSpan span, this.target) : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitAwaitExpr(this);
 }
 
 class PropertyExprNode extends ExprNode {
@@ -124,12 +160,18 @@ class PropertyExprNode extends ExprNode {
   final IdExprNode property;
 
   PropertyExprNode(FileSpan span, this.target, this.property) : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitPropertyExpr(this);
 }
 
 class ThrowExprNode extends ExprNode {
   final ExprNode target;
 
   ThrowExprNode(FileSpan span, this.target) : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitThrowExpr(this);
 }
 
 class CallExprNode extends ExprNode {
@@ -137,28 +179,40 @@ class CallExprNode extends ExprNode {
   final ArgListNode args;
 
   CallExprNode(FileSpan span, this.target, this.args) : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitCallExpr(this);
 }
 
-class LetInNode extends ExprNode {
+class LetInExprNode extends ExprNode {
   final IdExprNode name;
   final ParamListNode paramList;
   final ExprNode value;
   final ExprNode body;
 
-  LetInNode(FileSpan span, this.name, this.paramList, this.value, this.body)
+  LetInExprNode(FileSpan span, this.name, this.paramList, this.value, this.body)
       : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitLetInExpr(this);
 }
 
-class BeginEndNode extends ExprNode {
+class BeginEndExprNode extends ExprNode {
   final List<ExprNode> body;
 
-  BeginEndNode(FileSpan span, this.body) : super(span);
+  BeginEndExprNode(FileSpan span, this.body) : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitBeginEndExpr(this);
 }
 
 class ParenExprNode extends ExprNode {
   final ExprNode inner;
 
   ParenExprNode(FileSpan span, this.inner) : super(span);
+
+  @override
+  T accept<T>(ExprVisitor<T> visitor) => visitor.visitParenExpr(this);
 }
 
 class ArgListNode extends Node {
@@ -197,10 +251,16 @@ class IdPatternNode extends PatternNode {
   final IdExprNode id;
 
   IdPatternNode(FileSpan span, this.id) : super(span);
+
+  @override
+  T accept<T>(PatternVisitor<T> visitor) => visitor.visitIdPattern(this);
 }
 
 class IgnoredPatternNode extends PatternNode {
   IgnoredPatternNode(FileSpan span) : super(span);
+
+  @override
+  T accept<T>(PatternVisitor<T> visitor) => visitor.visitIgnoredPattern(this);
 }
 
 class AliasedPatternNode extends PatternNode {
@@ -208,22 +268,34 @@ class AliasedPatternNode extends PatternNode {
   final IdExprNode id;
 
   AliasedPatternNode(FileSpan span, this.target, this.id) : super(span);
+
+  @override
+  T accept<T>(PatternVisitor<T> visitor) => visitor.visitAliasedPattern(this);
 }
 
 class VoidPatternNode extends PatternNode {
   VoidPatternNode(FileSpan span) : super(span);
+
+  @override
+  T accept<T>(PatternVisitor<T> visitor) => visitor.visitVoidPattern(this);
 }
 
 class ExprPatternNode extends PatternNode {
   final ExprNode expr;
 
   ExprPatternNode(FileSpan span, this.expr) : super(span);
+
+  @override
+  T accept<T>(PatternVisitor<T> visitor) => visitor.visitExprPattern(this);
 }
 
 class ParenPatternNode extends PatternNode {
   final PatternNode inner;
 
   ParenPatternNode(FileSpan span, this.inner) : super(span);
+
+  @override
+  T accept<T>(PatternVisitor<T> visitor) => visitor.visitParenPattern(this);
 }
 
 abstract class TypeNode extends Node {
@@ -236,6 +308,9 @@ class TypeRefNode extends TypeNode {
   final IdExprNode name;
 
   TypeRefNode(FileSpan span, this.name) : super(span);
+
+  @override
+  T accept<T>(TypeVisitor<T> visitor) => visitor.visitTypeRef(this);
 }
 
 // TODO: Other types

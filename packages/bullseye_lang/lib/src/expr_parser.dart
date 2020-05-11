@@ -204,7 +204,7 @@ class ExprParser {
       }
 
       span = span.expand(body.span);
-      return LetInNode(span, name, paramList, value, body);
+      return LetInExprNode(span, name, paramList, value, body);
     }
 
     // BeginEnd
@@ -225,7 +225,7 @@ class ExprParser {
             lastSpan, 'A "begin ... end" expression must have a body.');
         return null;
       } else {
-        return BeginEndNode(span, body);
+        return BeginEndExprNode(span, body);
       }
     }
 
