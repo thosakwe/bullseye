@@ -179,7 +179,7 @@ class ExprParser {
       var paramList = parser.declParser.parseParamList(lastSpan);
       span = span.expand(lastSpan = paramList.span);
       if (!parser.nextIs(TokenType.EQUALS)) {
-        parser.emitError(lastSpan, 'Missing "=".');
+        parser.emitError(parser.lastToken.span, 'Missing "=".');
         return null;
       }
 

@@ -6,6 +6,27 @@ abstract class Node {
   Node(this.span);
 }
 
+abstract class DeclNode extends Node {
+  DeclNode(FileSpan span) : super(span);
+}
+
+class LetDeclNode extends DeclNode {
+  final IdExprNode name;
+  final ParamListNode paramList;
+  final ExprNode value;
+
+  LetDeclNode(FileSpan span, this.name, this.paramList, this.value)
+      : super(span);
+}
+
+class TypeDeclNode extends DeclNode {
+  final IdExprNode id;
+  final List<IdExprNode> params;
+  final TypeNode type;
+
+  TypeDeclNode(FileSpan span, this.id, this.params, this.type) : super(span);
+}
+
 abstract class ExprNode extends Node {
   ExprNode(FileSpan span) : super(span);
 }

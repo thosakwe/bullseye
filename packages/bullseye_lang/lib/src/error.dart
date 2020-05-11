@@ -23,7 +23,8 @@ class BullseyeError {
 
   @override
   String toString() =>
-      '${severityToString(severity)}: ${span.start.toolString}: $message';
+      '${severityToString(severity)}: ${span.start.toolString}: $message\n' +
+      span.highlight(color: true);
 }
 
 enum BullseyeErrorSeverity { error, warning, lint }

@@ -61,6 +61,7 @@ class Lexer {
     '%': TokenType.MOD,
     '+': TokenType.PLUS,
     '-': TokenType.MINUS,
+    '~': TokenType.TILDE,
 
     // Keywords
     'abstract': TokenType.ABSTRACT,

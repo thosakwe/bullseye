@@ -6,6 +6,7 @@ class PatternParser {
   PatternParser(this.parser);
 
   PatternNode parsePattern() {
+    // TODO: Proper infix
     var pattern = parseUnaryPattern();
     if (pattern == null) {
       return null;

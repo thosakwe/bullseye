@@ -50,6 +50,7 @@ enum TokenType {
   MOD,
   PLUS,
   MINUS,
+  TILDE,
 
   // Keywords
   ABSTRACT,
