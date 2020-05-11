@@ -7,7 +7,9 @@ class Parser {
   final Iterator<Token> tokens;
 
   final Queue<Token> _tokenQueue = Queue();
+  var _isDone = false;
   ExprParser _exprParser;
+  PatternParser _patternParser;
   TypeParser _typeParser;
   Token _lastToken;
 
@@ -18,7 +20,11 @@ class Parser {
 
   ExprParser get exprParser => _exprParser ??= ExprParser(this);
 
+  PatternParser get patternParser => _patternParser ??= PatternParser(this);
+
   TypeParser get typeParser => _typeParser ??= TypeParser(this);
+
+  bool get isDone => _isDone;
 
   Token get lastToken => _lastToken;
 
@@ -41,6 +47,7 @@ class Parser {
         return false;
       }
     } else {
+      _isDone = true;
       return false;
     }
   }

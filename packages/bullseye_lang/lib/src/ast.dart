@@ -10,10 +10,10 @@ abstract class ExprNode extends Node {
   ExprNode(FileSpan span) : super(span);
 }
 
-class IdNode extends ExprNode {
+class IdExprNode extends ExprNode {
   String _name;
 
-  IdNode(FileSpan span) : super(span);
+  IdExprNode(FileSpan span, [this._name]) : super(span);
 
   String get name => _name ??= span.text;
 }
@@ -34,6 +34,28 @@ class VoidLiteralNode extends ExprNode {
   VoidLiteralNode(FileSpan span) : super(span);
 }
 
+class StringLiteralNode extends ExprNode {
+  final List<StringPartNode> parts;
+
+  StringLiteralNode(FileSpan span, this.parts) : super(span);
+}
+
+abstract class StringPartNode extends Node {
+  StringPartNode(FileSpan span) : super(span);
+}
+
+class TextStringPartNode extends StringPartNode {
+  final String text;
+
+  TextStringPartNode(FileSpan span, this.text) : super(span);
+}
+
+class InterpolationStringPartNode extends StringPartNode {
+  final ExprNode expr;
+
+  InterpolationStringPartNode(FileSpan span, this.expr) : super(span);
+}
+
 class AwaitExprNode extends ExprNode {
   final ExprNode target;
 
@@ -42,7 +64,7 @@ class AwaitExprNode extends ExprNode {
 
 class PropertyExprNode extends ExprNode {
   final ExprNode target;
-  final IdNode property;
+  final IdExprNode property;
 
   PropertyExprNode(FileSpan span, this.target, this.property) : super(span);
 }
@@ -61,7 +83,7 @@ class CallExprNode extends ExprNode {
 }
 
 class LetInNode extends ExprNode {
-  final IdNode name;
+  final IdExprNode name;
   final ParamListNode paramList;
   final ExprNode value;
   final ExprNode body;
@@ -89,7 +111,7 @@ class ArgListNode extends Node {
 }
 
 class ArgNode extends Node {
-  final IdNode name;
+  final IdExprNode name;
   final ExprNode value;
 
   ArgNode(FileSpan span, this.name, this.value) : super(span);
@@ -112,12 +134,45 @@ abstract class PatternNode extends Node {
   PatternNode(FileSpan span) : super(span);
 }
 
+class IdPatternNode extends PatternNode {
+  final IdExprNode id;
+
+  IdPatternNode(FileSpan span, this.id) : super(span);
+}
+
+class IgnoredPatternNode extends PatternNode {
+  IgnoredPatternNode(FileSpan span) : super(span);
+}
+
+class AliasedPatternNode extends PatternNode {
+  final PatternNode target;
+  final IdExprNode id;
+
+  AliasedPatternNode(FileSpan span, this.target, this.id) : super(span);
+}
+
+class VoidPatternNode extends PatternNode {
+  VoidPatternNode(FileSpan span) : super(span);
+}
+
+class ExprPatternNode extends PatternNode {
+  final ExprNode expr;
+
+  ExprPatternNode(FileSpan span, this.expr) : super(span);
+}
+
+class ParenPatternNode extends PatternNode {
+  final PatternNode inner;
+
+  ParenPatternNode(FileSpan span, this.inner) : super(span);
+}
+
 abstract class TypeNode extends Node {
   TypeNode(FileSpan span) : super(span);
 }
 
 class TypeRefNode extends TypeNode {
-  final IdNode name;
+  final IdExprNode name;
 
   TypeRefNode(FileSpan span, this.name) : super(span);
 }

@@ -6,44 +6,6 @@ class ExprParser {
 
   ExprParser(this.parser);
 
-  /// Parses an argument for a call.
-  ArgNode parseArg(bool requireNamed, FileSpan lastSpan) {
-    const expectNamed = 'Expected a named argument.';
-
-    if (parser.nextIs(TokenType.ID)) {
-      var name = IdNode(parser.lastToken.span),
-          span = name.span,
-          lastSpan = span;
-      if (!parser.nextIs(TokenType.EQUALS)) {
-        if (requireNamed) {
-          parser.emitError(lastSpan, 'Missing "=" after identifier.');
-          return null;
-        } else {
-          return ArgNode(name.span, null, name);
-        }
-      } else {
-        span = span.expand(lastSpan = parser.lastToken.span);
-        var value = parseExpression();
-        if (value == null) {
-          parser.emitError(lastSpan, 'Missing expression after "=".');
-          return null;
-        } else {
-          return ArgNode(value.span, name, value);
-        }
-      }
-    } else {
-      var value = parseExpression();
-      if (value == null) {
-        return null;
-      } else if (requireNamed) {
-        parser.emitError(value.span, expectNamed);
-        return null;
-      } else {
-        return ArgNode(value.span, null, value);
-      }
-    }
-  }
-
   /// Parses a single expression, WITH checking for operators, calls, etc.
   /// If [allowDefinitions] is `false`, then the parser will not look for
   /// `let` or `fun`.
@@ -88,7 +50,7 @@ class ExprParser {
   ExprNode parseUnaryExpression({bool allowDefinitions = false}) {
     // Id
     if (parser.nextIs(TokenType.ID)) {
-      return IdNode(parser.lastToken.span);
+      return IdExprNode(parser.lastToken.span);
     }
 
     // IntLiteral
@@ -123,6 +85,57 @@ class ExprParser {
         } else {
           return ParenExprNode(span, expr);
         }
+      }
+    }
+
+    // StringLiteral
+    else if (parser.nextIsAnyOf([
+      TokenType.DOUBLE_QUOTE,
+      TokenType.SINGLE_QUOTE,
+      TokenType.TRIPLE_DOUBLE_QUOTE,
+      TokenType.TRIPLE_SINGLE_QUOTE,
+      TokenType.RAW_DOUBLE_QUOTE,
+      TokenType.RAW_SINGLE_QUOTE,
+      TokenType.RAW_TRIPLE_DOUBLE_QUOTE,
+      TokenType.RAW_TRIPLE_SINGLE_QUOTE,
+    ])) {
+      var span = parser.lastToken.span, lastSpan = span;
+      var parts = <StringPartNode>[];
+
+      // Figure out what kind of token we expect to see at the end of the
+      // string
+      TokenType closingType;
+      switch (parser.lastToken.type) {
+        case TokenType.RAW_DOUBLE_QUOTE:
+          closingType = TokenType.DOUBLE_QUOTE;
+          break;
+        case TokenType.RAW_SINGLE_QUOTE:
+          closingType = TokenType.SINGLE_QUOTE;
+          break;
+        case TokenType.RAW_TRIPLE_DOUBLE_QUOTE:
+          closingType = TokenType.TRIPLE_DOUBLE_QUOTE;
+          break;
+        case TokenType.RAW_TRIPLE_SINGLE_QUOTE:
+          closingType = TokenType.TRIPLE_SINGLE_QUOTE;
+          break;
+        default:
+          closingType = parser.lastToken.type;
+          break;
+      }
+
+      var part = parseStringPart();
+      while (part != null) {
+        span = span.expand(lastSpan = part.span);
+        parts.add(part);
+        part = parseStringPart();
+      }
+
+      if (!parser.nextIs(closingType)) {
+        parser.emitError(lastSpan, 'Unterminated string literal.');
+        return null;
+      } else {
+        span = span.expand(parser.lastToken.span);
+        return StringLiteralNode(span, parts);
       }
     }
 
@@ -176,6 +189,119 @@ class ExprParser {
 
     // Catch-all
     else {
+      return null;
+    }
+  }
+
+  /// Parses an argument for a call.
+  ArgNode parseArg(bool requireNamed, FileSpan lastSpan) {
+    const expectNamed = 'Expected a named argument.';
+
+    if (parser.nextIs(TokenType.ID)) {
+      var name = IdExprNode(parser.lastToken.span),
+          span = name.span,
+          lastSpan = span;
+      if (!parser.nextIs(TokenType.EQUALS)) {
+        if (requireNamed) {
+          parser.emitError(lastSpan, 'Missing "=" after identifier.');
+          return null;
+        } else {
+          return ArgNode(name.span, null, name);
+        }
+      } else {
+        span = span.expand(lastSpan = parser.lastToken.span);
+        var value = parseExpression();
+        if (value == null) {
+          parser.emitError(lastSpan, 'Missing expression after "=".');
+          return null;
+        } else {
+          return ArgNode(value.span, name, value);
+        }
+      }
+    } else {
+      var value = parseExpression();
+      if (value == null) {
+        return null;
+      } else if (requireNamed) {
+        parser.emitError(value.span, expectNamed);
+        return null;
+      } else {
+        return ArgNode(value.span, null, value);
+      }
+    }
+  }
+
+  StringPartNode parseStringPart() {
+    if (parser.nextIs(TokenType.ESCAPE_SEQUENCE)) {
+      var value = '';
+      switch (parser.lastToken.match[1]) {
+        case 'b':
+          value = '\b';
+          break;
+        case 'f':
+          value = '\f';
+          break;
+        case 'n':
+          value = '\n';
+          break;
+        case 'r':
+          value = '\r';
+          break;
+        case 't':
+          return TextStringPartNode(parser.lastToken.span, value);
+          break;
+        default:
+          parser.emitError(parser.lastToken.span,
+              'Unrecognized escape sequence. This is a bug in the compiler.');
+          return null;
+      }
+      return TextStringPartNode(parser.lastToken.span, value);
+    } else if (parser.nextIs(TokenType.ESCAPE_DOLLAR)) {
+      return TextStringPartNode(parser.lastToken.span, '\$');
+    } else if (parser
+        .nextIsAnyOf([TokenType.ESCAPE_HEX, TokenType.ESCAPE_UNICODE])) {
+      var value = int.parse(parser.lastToken.match[1], radix: 16);
+      return TextStringPartNode(
+          parser.lastToken.span, String.fromCharCode(value));
+    } else if (parser.nextIs(TokenType.ESCAPE_DOUBLE_QUOTE)) {
+      return TextStringPartNode(parser.lastToken.span, '"');
+    } else if (parser.nextIs(TokenType.ESCAPE_SINGLE_QUOTE)) {
+      return TextStringPartNode(parser.lastToken.span, "'");
+    } else if (parser.nextIs(TokenType.ESCAPE_TRIPLE_DOUBLE_QUOTE)) {
+      return TextStringPartNode(parser.lastToken.span, '"""');
+    } else if (parser.nextIs(TokenType.ESCAPE_TRIPLE_SINGLE_QUOTE)) {
+      return TextStringPartNode(parser.lastToken.span, "'''");
+    } else if (parser.nextIs(TokenType.TEXT)) {
+      return TextStringPartNode(
+          parser.lastToken.span, parser.lastToken.span.text);
+    }
+
+    // Manufacture an IdExprNode here
+    else if (parser.nextIs(TokenType.ESCAPED_ID)) {
+      return InterpolationStringPartNode(
+        parser.lastToken.span,
+        IdExprNode(parser.lastToken.span, parser.lastToken.match[1]),
+      );
+    }
+
+    // Search for an expr
+    else if (parser.nextIs(TokenType.DOLLAR_LCURLY)) {
+      var span = parser.lastToken.span, lastSpan = span;
+      var expr = parseExpression(allowDefinitions: true);
+      if (expr == null) {
+        parser.emitError(lastSpan, 'Missing expression after "\${".');
+        return null;
+      } else {
+        span = span.expand(lastSpan = expr.span);
+        if (!parser.nextIs(TokenType.RCURLY)) {
+          parser.emitError(lastSpan, '"}".');
+          return null;
+        } else {
+          span = span.expand(parser.lastToken.span);
+          return InterpolationStringPartNode(span, expr);
+        }
+      }
+    } else {
       return null;
     }
   }

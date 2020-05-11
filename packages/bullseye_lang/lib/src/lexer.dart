@@ -101,8 +101,8 @@ class Lexer {
   };
 
   static final Map<Pattern, TokenType> escapePatterns = {
-    RegExp(r'\$[A-Za-z_$][A-Za-z0-9_$]*'): TokenType.ESCAPED_ID,
-    RegExp(r'\\[bfnrt]'): TokenType.ESCAPE_SEQUENCE,
+    RegExp(r'\$([A-Za-z_$][A-Za-z0-9_$]*)'): TokenType.ESCAPED_ID,
+    RegExp(r'\\([bfnrt])'): TokenType.ESCAPE_SEQUENCE,
     RegExp(r'\\x([A-Fa-f0-9][A-Fa-f0-9])'): TokenType.ESCAPE_HEX,
     RegExp(r'\\u{([A-Fa-f0-9]+)}'): TokenType.ESCAPE_UNICODE,
     '\\\$': TokenType.ESCAPE_DOLLAR,
