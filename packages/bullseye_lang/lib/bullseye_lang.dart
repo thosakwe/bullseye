@@ -8,3 +8,4 @@ export 'src/parser.dart';
 export 'src/pattern_parser.dart';
 export 'src/token.dart';
 export 'src/type_parser.dart';
+export 'src/visitor.dart';

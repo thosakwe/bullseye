@@ -1,3 +1,4 @@
+import 'package:bullseye_lang/bullseye_lang.dart';
 import 'package:source_span/source_span.dart';
 
 abstract class Node {
@@ -15,6 +16,8 @@ class CompilationUnitNode extends Node {
 
 abstract class DirectiveNode extends Node {
   DirectiveNode(FileSpan span) : super(span);
+
+  T accept<T>(DirectiveVisitor<T> visitor);
 }
 
 class ImportDirectiveNode extends DirectiveNode {
@@ -35,6 +38,8 @@ class ImportModifierNode extends Node {
 
 abstract class DeclNode extends Node {
   DeclNode(FileSpan span) : super(span);
+
+  T accept<T>(DeclVisitor<T> visitor);
 }
 
 class LetDeclNode extends DeclNode {
@@ -56,6 +61,8 @@ class TypeDeclNode extends DeclNode {
 
 abstract class ExprNode extends Node {
   ExprNode(FileSpan span) : super(span);
+
+  T accept<T>(ExprVisitor<T> visitor);
 }
 
 class IdExprNode extends ExprNode {
@@ -90,6 +97,8 @@ class StringLiteralNode extends ExprNode {
 
 abstract class StringPartNode extends Node {
   StringPartNode(FileSpan span) : super(span);
+
+  T accept<T>(StringPartVisitor<T> visitor);
 }
 
 class TextStringPartNode extends StringPartNode {
@@ -180,6 +189,8 @@ class ParamNode extends Node {
 
 abstract class PatternNode extends Node {
   PatternNode(FileSpan span) : super(span);
+
+  T accept<T>(PatternVisitor<T> visitor);
 }
 
 class IdPatternNode extends PatternNode {
@@ -217,6 +228,8 @@ class ParenPatternNode extends PatternNode {
 
 abstract class TypeNode extends Node {
   TypeNode(FileSpan span) : super(span);
+
+  T accept<T>(TypeVisitor<T> visitor);
 }
 
 class TypeRefNode extends TypeNode {
