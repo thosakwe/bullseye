@@ -1,6 +1,0 @@
-let main () =
-    begin
-        let x = 2 in
-        print '.';
-        x * 3
-    end
