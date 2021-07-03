@@ -1,0 +1,26 @@
+-- vim: ft=haskell
+--
+-- TODO(thosakwe): Fix the license stuff
+-- This code is ported from the original shelf example. Its license:
+--
+-- Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+-- for details. All rights reserved. Use of this source code is governed by a
+-- BSD-style license that can be found in the LICENSE file.
+
+import "package:shelf/shelf.dart"
+import "package:shelf/shelf_io.dart" as Shelf_IO
+
+main :: () -> Future Void
+_echo_request :: Request -> Response
+
+main () =
+  let
+    handler =
+      Pipeline ()
+      |> Pipeline.addMiddleware (log_requests ())
+      |> Pipeline.addHandler _echo_request
+    server = await (Shelf_IO.serve handler "localhost" 8080)
+  in
+    server.autoCompress := true;
+    print "Serving at http://${server.address.host}:${server.port}"
+

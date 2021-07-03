@@ -1,67 +1,17 @@
-# ARCHIVED
-I have no practical intentions of completing this project, so it's now in an `Archived` state. That being said, I believe it
-serves as a good example of how to generate Dart kernel files. You may also be interested in `package:front_end`.
+# bullseye-lang
+A pure functional language that compiles to Dart.
 
-# bullseye
-[![Pub](https://img.shields.io/pub/v/bullseye_lang.svg)](https://pub.dartlang.org/packages/bullseye_lang)
-[![travis ci](https://travis-ci.org/thosakwe/bullseye.svg)](https://travis-ci.org/thosakwe/bullseye)
+## Contributing
 
-A functional language frontend for the Dart VM.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for details.
 
-## About
-Bullseye is greatly inspired by OCaml, and thus much
-of its syntax derives from that language.
+## License
 
-It is mostly an educational/for-fun project, but is also
-a playground to try out features that don't yet exist
-in Dart.
+Apache 2.0; see [`LICENSE`](LICENSE) for details.
 
-## Features
-Fully or partially implemented features include:
-* Record types
+## Disclaimer
 
-Planned features that are not yet implemented include:
-* Value classes
-* Pattern matching
-* NNBD
-* Flutter shorthand syntax
-* Cast functions to Flutter widgets
-* Spread operator
+This project is not an official Google project. It is not supported by
+Google and Google specifically disclaims all warranties as to its quality,
+merchantability, or fitness for a particular purpose.
 
-## Installation
-If you just want to use the current version:
-
-```bash
-pub global activate bullseye_lang
-```
-
-This will install the `bullseye` and `blsc` executables.
-
-## Example
-Note: Bullseye is still in its very early stages, so don't be surprised if things break.
-
-In a file, `hello.bls`, write:
-
-```ocaml
-let main() =
-    print "Hello, Bullseye!"
-```
-
-To compile and run it immediately, run
-`bullseye hello.bls`. Any other arguments will be
-forwarded to the Dart VM.
-
-You can also compile it to a `*.dill` file by calling
-`blsc -o hello.dill hello.bls`.
-
-Alternatively, you can print a text representation of the
-compiled kernel file by calling `blsc -f text hello.bls`.
-
-For other information, run `blsc --help`.
-
-## More Examples
-The `testcases/` directory contains sample files that
-are used to test the Bullseye compiler. Relevant
-sources can be found in:
-* `testcases/test/cases`
-* `testcases/test/output`

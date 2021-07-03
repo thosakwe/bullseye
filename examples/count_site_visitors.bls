@@ -1,0 +1,13 @@
+-- vim: ft=haskell
+main :: Future Void
+handle_request :: Request -> Response
+
+handle_request req =
+  case req.uri.path of
+    "/" -> serve_home req
+    "/.well-known/webfinger" -> serve_webfinger req
+    _ -> serve_404 req
+
+main =
+  let server = await HttpServer.bind "localhost" 8000
+  in Stream.forEach handle_request
