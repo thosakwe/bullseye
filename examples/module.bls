@@ -1,0 +1,10 @@
+-- vim: ft=haskell
+module MyModule
+  sum_list :: List t -> t
+  sum_list [] = 0
+  sum_list _:tail = 1 + (sum_list tail)
+
+main :: List String -> Void
+main args =
+  let total_length_of_args = MyModule.sum_list $ List.map String.length args
+  in print total_length_of_args

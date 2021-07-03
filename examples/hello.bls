@@ -1,0 +1,5 @@
+-- vim: ft=haskell
+
+main :: IO ()
+
+main () = print "Hello, Bullseye!"
