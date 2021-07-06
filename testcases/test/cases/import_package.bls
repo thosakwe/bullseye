@@ -1,4 +1,0 @@
-import 'package:io/io.dart'
-
-let main() =
-  ExitCode.success

@@ -1,4 +1,0 @@
-import 'dart:io'
-
-let main() =
-    Platform.environment

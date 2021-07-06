@@ -1,9 +1,0 @@
-name: example
-publish_to: none
-dependencies:
-  angel_framework: ^2.0.0-alpha
-  angel_static: ^2.0.0
-  bullseye_lang:
-    path: ../bullseye_lang
-  file: ^5.0.0
-  kernel:

@@ -1,5 +1,0 @@
-let timesTwo x =
-    x * 2
-
-let main () =
-    timesTwo 2
