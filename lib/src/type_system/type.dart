@@ -16,6 +16,11 @@ class StringType extends BullseyeType {
   bool isIdenticalTo(BullseyeType other) => other is StringType;
 }
 
+class UnitType extends BullseyeType {
+  @override
+  bool isIdenticalTo(BullseyeType other) => other is UnitType;
+}
+
 class BoolType extends BullseyeType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is BoolType;
@@ -48,6 +53,39 @@ class AliasedType extends BullseyeType {
 
   @override
   bool isIdenticalTo(BullseyeType other) => reference.isIdenticalTo(other);
+}
+
+class TypeParameter extends BullseyeType {
+  final String name;
+  // TODO(thosakwe): constraints, i.e. `T extends Int List`...
+  TypeParameter(this.name);
+}
+
+class PolymorphicType extends BullseyeType {
+  final List<TypeParameter> parameters;
+  final BullseyeType template;
+  PolymorphicType(this.parameters, this.template);
+}
+
+class FutureType extends BullseyeType {
+  final BullseyeType inner;
+  FutureType(this.inner);
+}
+
+class IOType extends BullseyeType {
+  final BullseyeType inner;
+  IOType(this.inner);
+}
+
+class TaggedSumType extends BullseyeType {
+  final List<TypeConstructor> constructors;
+  TaggedSumType(this.constructors);
+}
+
+class TypeConstructor {
+  final String name;
+  final List<BullseyeType> parameters;
+  TypeConstructor(this.name, this.parameters);
 }
 
 class WrappedDartClass extends BullseyeType {
