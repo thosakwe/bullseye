@@ -96,8 +96,9 @@ class ValueCompiler extends ValueVisitor<dart.Expression> {
 
   @override
   dart.Expression visitTuple(Tuple node) {
-    // TODO: implement visitTuple
-    throw UnimplementedError();
+    // Create an instance of TupleN
+    final args = node.items.map((item) => item.accept(this));
+    return dart.refer('Tuple${node.items.length}').newInstance(args);
   }
 
   @override
