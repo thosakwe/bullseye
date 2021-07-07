@@ -1,6 +1,6 @@
 import 'value.dart';
 
-abstract class BullseyeValueVisitor<T> {
+abstract class ValueVisitor<T> {
   T visitConstDouble(ConstDouble node);
   T visitConstInt(ConstInt node);
   T visitConstString(ConstString node);
