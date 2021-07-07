@@ -1,5 +1,4 @@
-import 'package:analyzer/dart/ast/ast.dart' as dart;
-import 'package:analyzer/dart/ast/ast_factory.dart' as dart;
+import 'package:code_builder/code_builder.dart' as dart;
 import 'package:bullseye_lang/src/analysis/value.dart';
 import 'package:bullseye_lang/src/analysis/value_visitor.dart';
 
@@ -31,6 +30,12 @@ class ValueCompiler extends ValueVisitor<dart.Expression> {
   @override
   dart.Expression visitClassInit(ClassInit node) {
     // TODO: implement visitClassInit
+    throw UnimplementedError();
+  }
+
+  @override
+  dart.Expression visitConstBool(ConstBool node) {
+    // TODO: implement visitConstBool
     throw UnimplementedError();
   }
 
