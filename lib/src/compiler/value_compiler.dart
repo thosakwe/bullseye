@@ -10,10 +10,7 @@ class ValueCompiler extends ValueVisitor<dart.Expression> {
   ValueCompiler(this.context);
 
   @override
-  dart.Expression visitAwait(Await node) {
-    // TODO: implement visitAwait
-    throw UnimplementedError();
-  }
+  dart.Expression visitAwait(Await node) => node.accept(this).awaited;
 
   @override
   dart.Expression visitBinaryOperation(BinaryOperation node) {
