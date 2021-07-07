@@ -62,16 +62,16 @@ class Tuple extends BullseyeValue {
       TupleType(items.map((item) => item.getType(typeProvider)).toList());
 }
 
-// TODO(thosakwe): Allow const tuples...
-class Record extends BullseyeValue {
-  final Map<String, BullseyeValue> items;
+// // TODO(thosakwe): Allow const tuples...
+// class Record extends BullseyeValue {
+//   final Map<String, BullseyeValue> items;
 
-  Record(this.items);
+//   Record(this.items);
 
-  @override
-  BullseyeType getType(TypeProvider typeProvider) => RecordType(
-      items.map((key, value) => MapEntry(key, value.getType(typeProvider))));
-}
+//   @override
+//   BullseyeType getType(TypeProvider typeProvider) => RecordType(
+//       items.map((key, value) => MapEntry(key, value.getType(typeProvider))));
+// }
 
 // TODO(thosakwe): Get ref, get param, set symbol, if/then, function call, curry
 // function, let ... in, arithmetic/bitwise, IOBind, IOAction, await, anonymous

@@ -51,10 +51,10 @@ class TupleType extends BullseyeType {
   TupleType(this.items);
 }
 
-class RecordType extends BullseyeType {
-  final Map<String, BullseyeType> fields;
-  RecordType(this.fields);
-}
+// class RecordType extends BullseyeType {
+//   final Map<String, BullseyeType> fields;
+//   RecordType(this.fields);
+// }
 
 class AliasedType extends BullseyeType {
   final String name;
