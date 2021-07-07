@@ -4,7 +4,6 @@ abstract class ValueVisitor<T> {
   T visitAwait(Await node);
   T visitBinaryOperation(BinaryOperation node);
   T visitBullseyeFunction(BullseyeFunction node); 
-  T visitClassInit(ClassInit node);
   T visitConstBool(ConstBool node);
   T visitConstDouble(ConstDouble node);
   T visitConstInt(ConstInt node);

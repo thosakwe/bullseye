@@ -113,8 +113,11 @@ class IndirectCall extends FunctionCall {
   final BullseyeValue target;
 }
 
-class PartialCall extends BullseyeValue {
+class PartialCall extends FunctionCall {
   final BullseyeValue target;
+}
+
+class ClassInit extends FunctionCall {
 }
 
 class LetIn extends BullseyeValue {
@@ -163,12 +166,6 @@ class IOBind extends BullseyeValue {
 class WrapPureInIO extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitWrapPureInIO(this);
-
-}
-
-class ClassInit extends BullseyeValue {
-  @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitClassInit(this);
 
 }
 
