@@ -92,9 +92,14 @@ class IfThen extends BullseyeValue {
   final BullseyeValue condition;
   final BullseyeValue whenTrue;
   final BullseyeValue whenFalse;
+
+  IfThen(this.condition, this.whenTrue, this.whenFalse);
+
+  @override
+  BullseyeType getType(TypeProvider typeProvider) => whenTrue.getType(TypeProvider typeProvider);
+
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitIfThen(this);
-
 }
 
 abstract class FunctionCall extends BullseyeValue {
