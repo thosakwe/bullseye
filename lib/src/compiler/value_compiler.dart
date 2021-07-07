@@ -28,40 +28,22 @@ class ValueCompiler extends ValueVisitor<dart.Expression> {
   }
 
   @override
-  dart.Expression visitClassInit(ClassInit node) {
-    // TODO: implement visitClassInit
-    throw UnimplementedError();
-  }
+  dart.Expression visitConstBool(ConstBool node) =>
+      dart.literalBool(node.value);
 
   @override
-  dart.Expression visitConstBool(ConstBool node) {
-    // TODO: implement visitConstBool
-    throw UnimplementedError();
-  }
+  dart.Expression visitConstDouble(ConstDouble node) =>
+      dart.literalNum(node.value);
 
   @override
-  dart.Expression visitConstDouble(ConstDouble node) {
-    // TODO: implement visitConstDouble
-    throw UnimplementedError();
-  }
+  dart.Expression visitConstInt(ConstInt node) => dart.literalNum(node.value);
 
   @override
-  dart.Expression visitConstInt(ConstInt node) {
-    // TODO: implement visitConstInt
-    throw UnimplementedError();
-  }
+  dart.Expression visitConstString(ConstString node) =>
+      dart.literalString(node.value);
 
   @override
-  dart.Expression visitConstString(ConstString node) {
-    // TODO: implement visitConstString
-    throw UnimplementedError();
-  }
-
-  @override
-  dart.Expression visitConstUnit(ConstUnit node) {
-    // TODO: implement visitConstUnit
-    throw UnimplementedError();
-  }
+  dart.Expression visitConstUnit(ConstUnit node) => dart.literalNull;
 
   @override
   dart.Expression visitFunctionCall(FunctionCall node) {
@@ -89,8 +71,13 @@ class ValueCompiler extends ValueVisitor<dart.Expression> {
 
   @override
   dart.Expression visitLetIn(LetIn node) {
-    // TODO: implement visitLetIn
-    throw UnimplementedError();
+    // let x = value in <body> is just sugar for (\x -> <body>)(<value>) in
+    // lambda calculus.
+    final body = dart.Method((b) {
+      b.requiredParameters.add(dart.Parameter((b) => b.name = node.name));
+      b.body = node.body.accept(this).returned.code;
+    });
+    return body.closure.call([node.value.accept(this)]);
   }
 
   @override
