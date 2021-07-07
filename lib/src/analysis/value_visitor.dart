@@ -1,21 +1,21 @@
 import 'value.dart';
 
-abstract class ValueVisitor<T> {
-  T visitConstDouble(ConstDouble node);
-  T visitConstInt(ConstInt node);
-  T visitConstString(ConstString node);
-  T visitConstUnit(ConstUnit node);
-  T visitTuple(Tuple node);
-  T visitIfThen(IfThen node);
-  T visitFunctionCall(FunctionCall node);
-  T visitLetIn(LetIn node);
-  T visitBinaryOperation(BinaryOperation node);
-  T visitBullseyeFunction(BullseyeFunction node); 
-  T visitAwait(Await node);
-  T visitIOBind(IOBind node);
-  T visitWrapPureInIO(WrapPureInIO node);
-  T visitClassInit(ClassInit node);
-  T visitTaggedSumInit(TaggedSumInit node);
-  T visitGetSymbol(GetSymbol node);
-  T visitSetSymbol(SetSymbol node);
+abstract class ValueVisitor<Ctx, T> {
+  Ctx visitConstDouble(Ctx ctx, ConstDouble node);
+  Ctx visitConstInt(Ctx ctx, ConstInt node);
+  Ctx visitConstString(Ctx ctx, ConstString node);
+  Ctx visitConstUnit(Ctx ctx, ConstUnit node);
+  Ctx visitTuple(Ctx ctx, Tuple node);
+  Ctx visitIfThen(Ctx ctx, IfThen node);
+  Ctx visitFunctionCall(Ctx ctx, FunctionCall node);
+  Ctx visitLetIn(Ctx ctx, LetIn node);
+  Ctx visitBinaryOperation(Ctx ctx, BinaryOperation node);
+  Ctx visitBullseyeFunction(Ctx ctx, BullseyeFunction node); 
+  Ctx visitAwait(Ctx ctx, Await node);
+  Ctx visitIOBind(Ctx ctx, IOBind node);
+  Ctx visitWrapPureInIO(Ctx ctx, WrapPureInIO node);
+  Ctx visitClassInit(Ctx ctx, ClassInit node);
+  Ctx visitTaggedSumInit(Ctx ctx, TaggedSumInit node);
+  Ctx visitGetSymbol(Ctx ctx, GetSymbol node);
+  Ctx visitSetSymbol(Ctx ctx, SetSymbol node);
 }

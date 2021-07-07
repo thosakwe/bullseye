@@ -7,7 +7,7 @@ import 'value_visitor.dart';
 abstract class BullseyeValue {
   Object? get constantValue => null;
 
-  T accept<T>(ValueVisitor<T> visitor);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor);
   BullseyeType getType(TypeProvider typeProvider);
 
   BullseyeValue? cast(BullseyeType to, TypeProvider typeProvider) =>
@@ -20,7 +20,7 @@ class ConstInt extends BullseyeValue {
   ConstInt(this.value);
 
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstInt(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitConstInt(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.intType;
@@ -32,7 +32,7 @@ class ConstDouble extends BullseyeValue {
   ConstDouble(this.value);
 
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstDouble(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitConstDouble(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.doubleType;
@@ -44,7 +44,7 @@ class ConstString extends BullseyeValue {
   ConstString(this.value);
 
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstString(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitConstString(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.stringType;
@@ -56,7 +56,7 @@ class ConstBool extends BullseyeValue {
   ConstBool(this.value);
 
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstBool(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitConstBool(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.boolType;
@@ -64,7 +64,7 @@ class ConstBool extends BullseyeValue {
 
 class ConstUnit extends BullseyeValue {
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstUnit(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitConstUnit(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.unitType;
@@ -77,7 +77,7 @@ class Tuple extends BullseyeValue {
   Tuple(this.items);
 
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitTuple(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitTuple(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) =>
@@ -93,7 +93,7 @@ class IfThen extends BullseyeValue {
   final BullseyeValue ifTrue;
   final BullseyeValue ifFalse;
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitIfThen(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitIfThen(ctx, this);
 
 }
 
@@ -101,7 +101,7 @@ abstract class FunctionCall extends BullseyeValue {
   final List<BullseyeValue> positionalArguments;
   final Map<String, BullseyeValue> namedArguments;
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunctionCall(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitFunctionCall(ctx, this);
 
 }
 
@@ -122,19 +122,19 @@ class LetIn extends BullseyeValue {
   final BullseyeValue value;
   final BullseyeValue body;
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitLetIn(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitLetIn(ctx, this);
 
 }
 
 class BinaryOperation extends BullseyeValue {
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitBinaryOperation(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitBinaryOperation(ctx, this);
 
 }
 
 abstract class BullseyeFunction extends BullseyeValue {
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitBullseyeFunction(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitBullseyeFunction(ctx, this);
 
 }
 
@@ -149,46 +149,46 @@ class FunctionRef extends BullseyeFunction {
 
 class Await extends BullseyeValue {
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitAwait(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitAwait(ctx, this);
 
 }
 
 class IOBind extends BullseyeValue {
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitIOBind(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitIOBind(ctx, this);
 
 }
 
 /// Wraps a pure value in an IO...
 class WrapPureInIO extends BullseyeValue {
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitWrapPureInIO(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitWrapPureInIO(ctx, this);
 
 }
 
 class ClassInit extends BullseyeValue {
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitClassInit(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitClassInit(ctx, this);
 
 }
 
 class TaggedSumInit extends BullseyeValue {
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitTaggedSumInit(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitTaggedSumInit(ctx, this);
 
 }
 
 class GetSymbol extends BullseyeValue {
   final BullseyeSymbol symbol;
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitGetSymbol(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitGetSymbol(ctx, this);
 
 }
 
 class SetSymbol extends BullseyeValue {
   final BullseyeSymbol symbol;
   @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitSetSymbol(this);
+  Ctx accept<Ctx, T>(Ctx ctx, ValueVisitor<Ctx, T> visitor) => visitor.visitSetSymbol(ctx, this);
 
 }
 // // TODO(thosakwe): Allow const tuples...
