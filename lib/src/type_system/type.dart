@@ -1,6 +1,8 @@
 import 'package:analyzer/dart/element/type.dart' as dart;
 
 abstract class BullseyeType {
+  // TODO(thosakwe): Get rid of this... Instead, have a castValue(value,
+  // otherType) function.
   bool isChildOf(BullseyeType other) => isIdenticalTo(other);
 
   bool isIdenticalTo(BullseyeType other) => this == other;
