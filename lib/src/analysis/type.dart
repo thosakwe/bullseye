@@ -1,34 +1,42 @@
 import 'package:analyzer/dart/element/type.dart' as dart;
+import 'value.dart';
 
 abstract class BullseyeType {
-  // TODO(thosakwe): Get rid of this... Instead, have a castValue(value,
-  // otherType) function.
-  bool isChildOf(BullseyeType other) => isIdenticalTo(other);
-
+  BullseyeValue? castValue(BullseyeValue value, BullseyeType to);
   bool isIdenticalTo(BullseyeType other) => this == other;
 }
 
-class IntType extends BullseyeType {
+abstract class PrimitiveType implements BullseyeType {
+  BullseyeValue? castValue(BullseyeValue value, BullseyeType to) {
+    if (isIdenticalTo(to)) {
+      return value;
+    } else {
+      return null;
+    }
+  }
+}
+
+class IntType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is IntType;
 }
 
-class StringType extends BullseyeType {
+class StringType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is StringType;
 }
 
-class UnitType extends BullseyeType {
+class UnitType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is UnitType;
 }
 
-class BoolType extends BullseyeType {
+class BoolType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is BoolType;
 }
 
-class DoubleType extends BullseyeType {
+class DoubleType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is DoubleType;
 }
