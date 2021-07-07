@@ -65,8 +65,10 @@ class ValueCompiler extends ValueVisitor<dart.Expression> {
 
   @override
   dart.Expression visitIfThen(IfThen node) {
-    // TODO: implement visitIfThen
-    throw UnimplementedError();
+    // Compiles to a conditional expression
+    final whenTrue = node.whenTrue.accept(this);
+    final whenFalse = node.whenFalse.accept(this);
+    return node.condition.accept(this).conditional(whenTrue, whenFalse);
   }
 
   @override

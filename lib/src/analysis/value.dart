@@ -90,8 +90,8 @@ class Tuple extends BullseyeValue {
 
 class IfThen extends BullseyeValue {
   final BullseyeValue condition;
-  final BullseyeValue ifTrue;
-  final BullseyeValue ifFalse;
+  final BullseyeValue whenTrue;
+  final BullseyeValue whenFalse;
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitIfThen(this);
 
