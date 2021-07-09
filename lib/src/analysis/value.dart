@@ -1,5 +1,7 @@
 import 'package:bullseye_lang/src/analysis/symbol.dart';
 
+import 'function_call_visitor.dart';
+import 'function_visitor.dart';
 import 'type.dart';
 import 'type_provider.dart';
 import 'value_visitor.dart';
@@ -103,26 +105,32 @@ class IfThen extends BullseyeValue {
 }
 
 abstract class FunctionCall extends BullseyeValue {
+  final FunctionTarget target;
   final List<BullseyeValue> positionalArguments;
   final Map<String, BullseyeValue> namedArguments;
+
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunctionCall(this);
 
 }
 
-class DirectCall extends FunctionCall {
+abstract class FunctionTarget {
+  T accept<T>(FunctionTargetVisitor<T> visitor);
+}
+
+class DirectCall extends FunctionTarget {
   final Symbol target;
 }
 
-class IndirectCall extends FunctionCall {
+class IndirectCall extends FunctionTarget {
   final BullseyeValue target;
 }
 
-class PartialCall extends FunctionCall {
+class PartialCall extends FunctionTarget {
   final BullseyeValue target;
 }
 
-class ClassInit extends FunctionCall {
+class ClassInit extends FunctionTarget {
 }
 
 class LetIn extends BullseyeValue {
