@@ -58,20 +58,30 @@ class UnitType extends BullseyeType with PrimitiveType {
   bool isIdenticalTo(BullseyeType other) => other is UnitType;
 }
 
+/// Alias for [List].
 class ListType extends BullseyeType {
   final BullseyeType innerType;
   ListType(this.innerType);
 }
 
+/// A type for tuples containing the provided [fields].
+///
+/// Ex. `{ one = 1; two = "two"; }` has the type `{ one: int; two: string; }`.
+class RecordType extends BullseyeType {
+  final Map<String, BullseyeType> fields;
+  RecordType(this.fields);
+}
+
+/// A type for tuples containing the provided [items].
+/// "Tuple" types are syntactic sugar in Bullseye.
+/// TODO(thosakwe): Doesn't this mean TupleType should be completely removed,
+/// then?
+///
+/// Ex. `(2, "3", 4.0)` has the type `int * string * double`.
 class TupleType extends BullseyeType {
   final List<BullseyeType> items;
   TupleType(this.items);
 }
-
-// class RecordType extends BullseyeType {
-//   final Map<String, BullseyeType> fields;
-//   RecordType(this.fields);
-// }
 
 class AliasedType extends BullseyeType {
   final String name;
