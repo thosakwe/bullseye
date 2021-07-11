@@ -105,4 +105,20 @@ class ValueCompiler
     // TODO: implement visitWrapPureInIO
     throw UnimplementedError();
   }
+
+  @override
+  dart.Expression visitDirectTarget(DirectTarget node) =>
+      throw UnimplementedError();
+
+  @override
+  dart.Expression visitIndirectTarget(IndirectTarget node) =>
+      throw UnimplementedError();
+
+  @override
+  dart.Expression visitPartialTarget(PartialTarget node) =>
+      throw UnimplementedError();
+
+  @override
+  dart.Expression visitConstructor(Constructor node) =>
+      throw UnimplementedError();
 }
