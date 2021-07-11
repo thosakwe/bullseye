@@ -37,10 +37,10 @@ class TypeProvider {
       ]),
     );
     _maybeType = PolymorphicType(
-      [TypeParameter('a')],
+      [TypeParameter('l'), TypeParameter('r')],
       TaggedSumType([
-        TypeConstructor('Just', [TypeParameter('a')]),
-        TypeConstructor('Nothing', [])
+        TypeConstructor('Left', [TypeParameter('l')]),
+        TypeConstructor('Right', [TypeParameter('r')]),
       ]),
     );
   }
