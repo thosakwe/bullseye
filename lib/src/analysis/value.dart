@@ -140,7 +140,9 @@ class PartialTarget extends FunctionTarget {
   PartialTarget(this.target);
 }
 
-class ClassInit extends FunctionTarget {}
+class Constructor extends FunctionTarget {
+
+}
 
 class LetIn extends BullseyeValue {
   final String name;
