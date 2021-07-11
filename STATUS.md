@@ -1,4 +1,5 @@
-Currently working on adding documentation to everything. Stopped at AliasedType.
+Currently working on adding documentation to everything. Stopped at
+BullseyeValue.
 
 * Finish the "Bullseye IR to Dart" compiler. Add some more IR's eventually. Just
     keep looking at existing Dart code until *most* everything has an IR.
