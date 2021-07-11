@@ -2,6 +2,7 @@ import 'type.dart';
 import 'type_provider.dart';
 import 'value.dart';
 
+/// Symbols are the top-level, named exports of a library.
 abstract class BullseyeSymbol {
   String get name;
   BullseyeType getType(TypeProvider typeProvider);
