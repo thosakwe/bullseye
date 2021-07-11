@@ -1,6 +1,11 @@
 import 'package:analyzer/dart/element/type.dart' as dart;
 import 'value.dart';
 
+/// A Bullseye type.
+///
+/// Bullseye types do not always map directly to Dart types. Some types, like
+/// TupleType or RecordType, do not exist in the Dart type system at the time of
+/// this writing.
 abstract class BullseyeType {
   BullseyeValue? castValue(BullseyeValue value, BullseyeType to);
   bool isIdenticalTo(BullseyeType other) => this == other;
