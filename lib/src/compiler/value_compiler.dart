@@ -1,10 +1,14 @@
 import 'package:code_builder/code_builder.dart' as dart;
+import 'package:bullseye_lang/src/analysis/function_target_visitor.dart';
 import 'package:bullseye_lang/src/analysis/value.dart';
 import 'package:bullseye_lang/src/analysis/value_visitor.dart';
 
 import 'context.dart';
 
-class ValueCompiler extends ValueVisitor<dart.Expression> {
+class ValueCompiler
+    implements
+        ValueVisitor<dart.Expression>,
+        FunctionTargetVisitor<dart.Expression> {
   final Context context;
 
   ValueCompiler(this.context);

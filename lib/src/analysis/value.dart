@@ -1,6 +1,7 @@
 import 'package:bullseye_lang/src/analysis/symbol.dart';
 
 import 'function_call_visitor.dart';
+import 'function_target_visitor.dart';
 import 'function_visitor.dart';
 import 'type.dart';
 import 'type_provider.dart';
