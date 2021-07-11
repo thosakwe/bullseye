@@ -53,7 +53,8 @@ class ValueCompiler
   }
 
   @override
-  dart.Expression visitGetSymbol(GetSymbol node) => dart.refer(node.symbol.name);
+  dart.Expression visitGetSymbol(GetSymbol node) =>
+      dart.refer(node.symbol.name);
 
   @override
   dart.Expression visitIOBind(IOBind node) {

@@ -99,7 +99,7 @@ class IfThen extends BullseyeValue {
   IfThen(this.condition, this.whenTrue, this.whenFalse);
 
   @override
-  BullseyeType getType(TypeProvider typeProvider) => whenTrue.getType(TypeProvider typeProvider);
+  BullseyeType getType(TypeProvider typeProvider) => whenTrue.getType(typeProvider);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitIfThen(this);
