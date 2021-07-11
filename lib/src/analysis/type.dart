@@ -25,6 +25,18 @@ abstract class PrimitiveType implements BullseyeType {
   }
 }
 
+/// Alias for [bool].
+class BoolType extends BullseyeType with PrimitiveType {
+  @override
+  bool isIdenticalTo(BullseyeType other) => other is BoolType;
+}
+
+/// Alias for [double].
+class DoubleType extends BullseyeType with PrimitiveType {
+  @override
+  bool isIdenticalTo(BullseyeType other) => other is DoubleType;
+}
+
 /// Alias for [int].
 class IntType extends BullseyeType with PrimitiveType {
   @override
@@ -44,18 +56,6 @@ class StringType extends BullseyeType with PrimitiveType {
 class UnitType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is UnitType;
-}
-
-/// Alias for [bool].
-class BoolType extends BullseyeType with PrimitiveType {
-  @override
-  bool isIdenticalTo(BullseyeType other) => other is BoolType;
-}
-
-/// Alias for [double].
-class DoubleType extends BullseyeType with PrimitiveType {
-  @override
-  bool isIdenticalTo(BullseyeType other) => other is DoubleType;
 }
 
 class ListType extends BullseyeType {
