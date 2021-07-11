@@ -11,6 +11,10 @@ abstract class BullseyeType {
   bool isIdenticalTo(BullseyeType other) => this == other;
 }
 
+/// Base class for primitive types.
+///
+/// TODO(thosakwe): Eventually, primitive types may carry more specific
+/// information.
 abstract class PrimitiveType implements BullseyeType {
   BullseyeValue? castValue(BullseyeValue value, BullseyeType to) {
     if (isIdenticalTo(to)) {
@@ -21,26 +25,34 @@ abstract class PrimitiveType implements BullseyeType {
   }
 }
 
+/// Alias for [int].
 class IntType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is IntType;
 }
 
+/// Alias for [String].
 class StringType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is StringType;
 }
 
+/// A type representing a set that has exactly one value.
+///
+/// In practice, it doesn't matter which Dart type this maps to, so Bullseye's
+/// unit type compiles to [Null].
 class UnitType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is UnitType;
 }
 
+/// Alias for [bool].
 class BoolType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is BoolType;
 }
 
+/// Alias for [double].
 class DoubleType extends BullseyeType with PrimitiveType {
   @override
   bool isIdenticalTo(BullseyeType other) => other is DoubleType;
