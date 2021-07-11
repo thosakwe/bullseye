@@ -83,6 +83,8 @@ class TupleType extends BullseyeType {
   TupleType(this.items);
 }
 
+/// An alias for another type. In practice, most user-defined types will fall
+/// under this category.
 class AliasedType extends BullseyeType {
   final String name;
   final BullseyeType reference;
@@ -92,39 +94,50 @@ class AliasedType extends BullseyeType {
   bool isIdenticalTo(BullseyeType other) => reference.isIdenticalTo(other);
 }
 
+/// Carries information about a parameter to a polymorphic type.
 class TypeParameter extends BullseyeType {
   final String name;
   // TODO(thosakwe): constraints, i.e. `T extends Int List`...
   TypeParameter(this.name);
 }
 
+/// A function that takes one or more types as arguments, and then returns a
+/// type.
 class PolymorphicType extends BullseyeType {
   final List<TypeParameter> parameters;
   final BullseyeType template;
   PolymorphicType(this.parameters, this.template);
 }
 
+/// Alias for [Future].
 class FutureType extends BullseyeType {
   final BullseyeType inner;
   FutureType(this.inner);
 }
 
+/// A type returned by functions that describe side effects.
+/// Values of this type tell the compiler what to do, without caring when it
+/// gets done, if it even gets done at all.
 class IOType extends BullseyeType {
   final BullseyeType inner;
   IOType(this.inner);
 }
 
+/// A sum type, where every variant has a name.
 class TaggedSumType extends BullseyeType {
   final List<TypeConstructor> constructors;
   TaggedSumType(this.constructors);
 }
 
+/// A function that initializes a value of a given type.
+/// This includes the constructors of [WrappedDartClass]es.
 class TypeConstructor {
   final String name;
   final List<BullseyeType> parameters;
   TypeConstructor(this.name, this.parameters);
 }
 
+/// An alias for the given [dartClass].
 class WrappedDartClass extends BullseyeType {
   final dart.InterfaceType clazz;
 
