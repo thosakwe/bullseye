@@ -1,5 +1,5 @@
-* Currently working on: compile "FunctionTarget" to a dart expression. This way,
-    you can do function calls.
+Currently working on adding documentation to everything. Stopped at AliasedType.
+
 * Finish the "Bullseye IR to Dart" compiler. Add some more IR's eventually. Just
     keep looking at existing Dart code until *most* everything has an IR.
 * Then do the AST. And then, the lexer + parser.
