@@ -110,6 +110,8 @@ abstract class FunctionCall extends BullseyeValue {
   final List<BullseyeValue> positionalArguments;
   final Map<String, BullseyeValue> namedArguments;
 
+  FunctionCall(this.target, this.positionalArguments, this.namedArguments);
+
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunctionCall(this);
 
@@ -121,14 +123,20 @@ abstract class FunctionTarget {
 
 class DirectCall extends FunctionTarget {
   final Symbol target;
+
+  DirectCall(this.target);
 }
 
 class IndirectCall extends FunctionTarget {
   final BullseyeValue target;
+
+  IndirectCall(this.target);
 }
 
 class PartialCall extends FunctionTarget {
   final BullseyeValue target;
+
+  PartialCall(this.target);
 }
 
 class ClassInit extends FunctionTarget {
@@ -138,6 +146,9 @@ class LetIn extends BullseyeValue {
   final String name;
   final BullseyeValue value;
   final BullseyeValue body;
+
+  LetIn(this.name, this.value, this.body);
+
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitLetIn(this);
 
@@ -191,16 +202,20 @@ class TaggedSumInit extends BullseyeValue {
 
 class GetSymbol extends BullseyeValue {
   final BullseyeSymbol symbol;
+
+  GetSymbol(this.symbol);
+
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitGetSymbol(this);
-
 }
 
 class SetSymbol extends BullseyeValue {
   final BullseyeSymbol symbol;
+
+  SetSymbol(this.symbol);
+
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitSetSymbol(this);
-
 }
 // // TODO(thosakwe): Allow const tuples...
 // class Record extends BullseyeValue {
