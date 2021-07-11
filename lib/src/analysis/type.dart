@@ -7,7 +7,11 @@ import 'value.dart';
 /// TupleType or RecordType, do not exist in the Dart type system at the time of
 /// this writing.
 abstract class BullseyeType {
+  /// Casts a value of this type [to] another.
+  /// If `null` is returned, it means that values of this type are not
+  /// compatible with the target type.
   BullseyeValue? castValue(BullseyeValue value, BullseyeType to);
+
   bool isIdenticalTo(BullseyeType other) => this == other;
 }
 
