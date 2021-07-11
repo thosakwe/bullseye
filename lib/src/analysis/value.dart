@@ -140,8 +140,7 @@ class PartialCall extends FunctionTarget {
   PartialCall(this.target);
 }
 
-class ClassInit extends FunctionTarget {
-}
+class ClassInit extends FunctionTarget {}
 
 class LetIn extends BullseyeValue {
   final String name;
@@ -173,14 +172,11 @@ abstract class BullseyeFunction extends BullseyeValue {
   BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
-class NamedFunction extends BullseyeFunction {
-}
+class NamedFunction extends BullseyeFunction {}
 
-class AnonymousFunction extends BullseyeFunction {
-}
+class AnonymousFunction extends BullseyeFunction {}
 
-class FunctionRef extends BullseyeFunction {
-}
+class FunctionRef extends BullseyeFunction {}
 
 class Await extends BullseyeValue {
   @override
