@@ -99,7 +99,8 @@ class IfThen extends BullseyeValue {
   IfThen(this.condition, this.whenTrue, this.whenFalse);
 
   @override
-  BullseyeType getType(TypeProvider typeProvider) => whenTrue.getType(typeProvider);
+  BullseyeType getType(TypeProvider typeProvider) =>
+      whenTrue.getType(typeProvider);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitIfThen(this);
@@ -152,18 +153,24 @@ class LetIn extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitLetIn(this);
 
+  @override
+  BullseyeType getType(TypeProvider typeProvider) => body.getType(typeProvider);
 }
 
 class BinaryOperation extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitBinaryOperation(this);
 
+  @override
+  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
 abstract class BullseyeFunction extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitBullseyeFunction(this);
 
+  @override
+  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
 class NamedFunction extends BullseyeFunction {
@@ -179,12 +186,16 @@ class Await extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitAwait(this);
 
+  @override
+  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
 class IOBind extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitIOBind(this);
 
+  @override
+  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
 /// Wraps a pure value in an IO...
@@ -192,12 +203,16 @@ class WrapPureInIO extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitWrapPureInIO(this);
 
+  @override
+  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
 class TaggedSumInit extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitTaggedSumInit(this);
 
+  @override
+  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
 class GetSymbol extends BullseyeValue {
@@ -207,6 +222,9 @@ class GetSymbol extends BullseyeValue {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitGetSymbol(this);
+
+  @override
+  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
 class SetSymbol extends BullseyeValue {
@@ -216,6 +234,9 @@ class SetSymbol extends BullseyeValue {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitSetSymbol(this);
+
+  @override
+  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 // // TODO(thosakwe): Allow const tuples...
 // class Record extends BullseyeValue {
