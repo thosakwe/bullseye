@@ -139,7 +139,7 @@ class TypeConstructor {
 
 /// An alias for the given [dartClass].
 class WrappedDartClass extends BullseyeType {
-  final dart.InterfaceType clazz;
+  final dart.InterfaceType dartClass;
 
-  WrappedDartClass(this.clazz);
+  WrappedDartClass(this.dartClass);
 }
