@@ -1,2 +1,4 @@
-abstract class FunctionVisitor<T> {
-}
+import 'value.dart';
+
+/// Base class for [BullseyeFunction] visitors.
+abstract class FunctionVisitor<T> {}

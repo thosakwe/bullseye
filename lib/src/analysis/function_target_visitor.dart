@@ -1,5 +1,6 @@
 import 'value.dart';
 
+/// Base class for [FunctionTarget] visitors.
 abstract class FunctionTargetVisitor<T> {
   T visitDirectTarget(DirectTarget node);
   T visitIndirectTarget(IndirectTarget node);

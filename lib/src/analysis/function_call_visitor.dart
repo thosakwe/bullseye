@@ -1,4 +1,4 @@
 import 'value.dart';
 
-abstract class FunctionCallVisitor<T> {
-}
+/// Base class for [FunctionCall] visitors.
+abstract class FunctionCallVisitor<T> {}
