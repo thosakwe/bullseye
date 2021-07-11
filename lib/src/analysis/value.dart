@@ -122,22 +122,22 @@ abstract class FunctionTarget {
   T accept<T>(FunctionTargetVisitor<T> visitor);
 }
 
-class DirectCall extends FunctionTarget {
+class DirectTarget extends FunctionTarget {
   final Symbol target;
 
-  DirectCall(this.target);
+  DirectTarget(this.target);
 }
 
-class IndirectCall extends FunctionTarget {
+class IndirectTarget extends FunctionTarget {
   final BullseyeValue target;
 
-  IndirectCall(this.target);
+  IndirectTarget(this.target);
 }
 
-class PartialCall extends FunctionTarget {
+class PartialTarget extends FunctionTarget {
   final BullseyeValue target;
 
-  PartialCall(this.target);
+  PartialTarget(this.target);
 }
 
 class ClassInit extends FunctionTarget {}
