@@ -1,7 +1,8 @@
-import 'package:code_builder/code_builder.dart' as dart;
+import 'package:bullseye_lang/src/analysis/function_target.dart';
 import 'package:bullseye_lang/src/analysis/function_target_visitor.dart';
 import 'package:bullseye_lang/src/analysis/value.dart';
 import 'package:bullseye_lang/src/analysis/value_visitor.dart';
+import 'package:code_builder/code_builder.dart' as dart;
 
 import 'context.dart';
 
@@ -19,12 +20,6 @@ class ValueCompiler
   @override
   dart.Expression visitBinaryOperation(BinaryOperation node) {
     // TODO: implement visitBinaryOperation
-    throw UnimplementedError();
-  }
-
-  @override
-  dart.Expression visitBullseyeFunction(BullseyeFunction node) {
-    // TODO: implement visitBullseyeFunction
     throw UnimplementedError();
   }
 
@@ -57,12 +52,6 @@ class ValueCompiler
       dart.refer(node.symbol.name);
 
   @override
-  dart.Expression visitIOBind(IOBind node) {
-    // TODO: implement visitIOBind
-    throw UnimplementedError();
-  }
-
-  @override
   dart.Expression visitIfThen(IfThen node) {
     // Compiles to a conditional expression
     final whenTrue = node.whenTrue.accept(this);
@@ -82,28 +71,10 @@ class ValueCompiler
   }
 
   @override
-  dart.Expression visitSetSymbol(SetSymbol node) {
-    // TODO: implement visitSetSymbol
-    throw UnimplementedError();
-  }
-
-  @override
-  dart.Expression visitTaggedSumInit(TaggedSumInit node) {
-    // TODO: implement visitTaggedSumInit
-    throw UnimplementedError();
-  }
-
-  @override
   dart.Expression visitTuple(Tuple node) {
     // Create an instance of TupleN
     final args = node.items.map((item) => item.accept(this));
     return dart.refer('Tuple${node.items.length}').newInstance(args);
-  }
-
-  @override
-  dart.Expression visitWrapPureInIO(WrapPureInIO node) {
-    // TODO: implement visitWrapPureInIO
-    throw UnimplementedError();
   }
 
   @override

@@ -1,4 +1,4 @@
-import 'value.dart';
+import 'function_target.dart';
 
 /// Base class for [FunctionTarget] visitors.
 abstract class FunctionTargetVisitor<T> {
