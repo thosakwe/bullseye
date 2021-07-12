@@ -196,20 +196,8 @@ class BinaryOperation extends BullseyeValue {
   BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
-abstract class BullseyeFunction extends BullseyeValue {
-  @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitBullseyeFunction(this);
-
-  @override
-  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
-}
-
-class NamedFunction extends BullseyeFunction {}
-
-class AnonymousFunction extends BullseyeFunction {}
-
-class FunctionRef extends BullseyeFunction {}
-
+/// A value obtained by awaiting the provided [future].
+/// TODO(thosakwe): Flesh this class out.
 class Await extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitAwait(this);
