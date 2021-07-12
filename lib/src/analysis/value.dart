@@ -112,6 +112,8 @@ class Tuple extends BullseyeValue {
 // function, let ... in, arithmetic/bitwise, IOBind, IOAction, await, anonymous
 // function, constructor initialization
 
+/// A choice between two values, based on some [condition].
+/// `condition ? whenTrue : whenFalse`.
 class IfThen extends BullseyeValue {
   final BullseyeValue condition;
   final BullseyeValue whenTrue;
@@ -127,6 +129,11 @@ class IfThen extends BullseyeValue {
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitIfThen(this);
 }
 
+/// A value obtained as the result of invoking some function with the provided
+/// arguments.
+///
+/// The [target] is not necessarily a Dart function; it may be a reference to a
+/// Dart constructor.
 abstract class FunctionCall extends BullseyeValue {
   final FunctionTarget target;
   final List<BullseyeValue> positionalArguments;
@@ -138,42 +145,16 @@ abstract class FunctionCall extends BullseyeValue {
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunctionCall(this);
 }
 
-abstract class FunctionTarget {
-  T accept<T>(FunctionTargetVisitor<T> visitor);
-}
-
-class DirectTarget extends FunctionTarget {
-  final Symbol target;
-
-  DirectTarget(this.target);
-
-  T accept<T>(FunctionTargetVisitor<T> visitor) =>
-      visitor.visitDirectTarget(this);
-}
-
-class IndirectTarget extends FunctionTarget {
-  final BullseyeValue target;
-
-  IndirectTarget(this.target);
-
-  T accept<T>(FunctionTargetVisitor<T> visitor) =>
-      visitor.visitIndirectTarget(this);
-}
-
-class PartialTarget extends FunctionTarget {
-  final BullseyeValue target;
-
-  PartialTarget(this.target);
-
-  T accept<T>(FunctionTargetVisitor<T> visitor) =>
-      visitor.visitPartialTarget(this);
-}
-
-class Constructor extends FunctionTarget {
-  T accept<T>(FunctionTargetVisitor<T> visitor) =>
-      visitor.visitConstructor(this);
-}
-
+/// Evaluates [body] in a new context (where [name] = [value]).
+/// This is most similar to setting a variable in an imperative language, and
+/// then immediately returning an expression that references that variable.
+///
+/// For example: `let x = 2 in x * 2` is equivalent to this Dart code:
+///
+/// ```dart
+/// var x = 2;
+/// return x * 2;
+/// ```
 class LetIn extends BullseyeValue {
   final String name;
   final BullseyeValue value;
@@ -188,6 +169,8 @@ class LetIn extends BullseyeValue {
   BullseyeType getType(TypeProvider typeProvider) => body.getType(typeProvider);
 }
 
+/// A value which is obtained by performing a binary operation on two values.
+/// TODO(thosakwe): Flesh this class out.
 class BinaryOperation extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitBinaryOperation(this);
@@ -206,31 +189,42 @@ class Await extends BullseyeValue {
   BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
-class IOBind extends BullseyeValue {
-  @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitIOBind(this);
+abstract class IOValue {}
 
-  @override
-  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
+abstract class IOVisitor<T> {}
+
+class IOBind extends IOValue {
+  // @override
+  // T accept<T>(ValueVisitor<T> visitor) => visitor.visitIOBind(this);
+
+  // @override
+  // BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
 /// Wraps a pure value in an IO...
-class WrapPureInIO extends BullseyeValue {
-  @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitWrapPureInIO(this);
+/// TODO(thosakwe): Flesh this class out.
+class WrapPureInIO extends IOValue {
+  // @override
+  // T accept<T>(ValueVisitor<T> visitor) => visitor.visitWrapPureInIO(this);
 
-  @override
-  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
+  // @override
+  // BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
-class TaggedSumInit extends BullseyeValue {
-  @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitTaggedSumInit(this);
+class SetSymbol extends IOValue {
+  final BullseyeSymbol symbol;
+  final BullseyeValue value;
 
-  @override
-  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
+  SetSymbol(this.symbol, this.value);
+
+  // @override
+  // T accept<T>(ValueVisitor<T> visitor) => visitor.visitSetSymbol(this);
+
+  // @override
+  // BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
 }
 
+/// A value obtained by fetching the value of the given [symbol] at runtime.
 class GetSymbol extends BullseyeValue {
   final BullseyeSymbol symbol;
 
@@ -238,18 +232,6 @@ class GetSymbol extends BullseyeValue {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitGetSymbol(this);
-
-  @override
-  BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
-}
-
-class SetSymbol extends BullseyeValue {
-  final BullseyeSymbol symbol;
-
-  SetSymbol(this.symbol);
-
-  @override
-  T accept<T>(ValueVisitor<T> visitor) => visitor.visitSetSymbol(this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
