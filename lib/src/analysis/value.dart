@@ -30,10 +30,17 @@ abstract class BullseyeValue {
       getType(typeProvider).castValue(this, to);
 }
 
-class ConstInt extends BullseyeValue {
-  final int value;
+/// Base class for constant values, since they share a lot of common properties.
+abstract class Constant<T> extends BullseyeValue {
+  /// The value.
+  final T value;
 
-  ConstInt(this.value);
+  Constant(this.value);
+}
+
+/// A constant [int].
+class ConstInt extends Constant<int> {
+  ConstInt(int value):super(value);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstInt(this);
@@ -42,10 +49,9 @@ class ConstInt extends BullseyeValue {
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.intType;
 }
 
-class ConstDouble extends BullseyeValue {
-  final double value;
-
-  ConstDouble(this.value);
+/// A constant [double].
+class ConstDouble extends Constant<double> {
+  ConstDouble(double value):super(value);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstDouble(this);
@@ -54,10 +60,9 @@ class ConstDouble extends BullseyeValue {
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.doubleType;
 }
 
-class ConstString extends BullseyeValue {
-  final String value;
-
-  ConstString(this.value);
+/// A constant [String].
+class ConstString extends Constant<String> {
+  ConstString(String value):super(value);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstString(this);
@@ -66,10 +71,9 @@ class ConstString extends BullseyeValue {
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.stringType;
 }
 
-class ConstBool extends BullseyeValue {
-  final bool value;
-
-  ConstBool(this.value);
+/// A constant [bool].
+class ConstBool extends Constant<bool> {
+  ConstBool(bool value):super(value);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstBool(this);
@@ -78,7 +82,10 @@ class ConstBool extends BullseyeValue {
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.boolType;
 }
 
-class ConstUnit extends BullseyeValue {
+/// The single value belonging to the [UnitType].
+class ConstUnit extends Constant<Null> {
+  ConstUnit():super(null);
+
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstUnit(this);
 
