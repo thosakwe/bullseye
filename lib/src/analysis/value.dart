@@ -40,7 +40,7 @@ abstract class Constant<T> extends BullseyeValue {
 
 /// A constant [int].
 class ConstInt extends Constant<int> {
-  ConstInt(int value):super(value);
+  ConstInt(int value) : super(value);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstInt(this);
@@ -51,7 +51,7 @@ class ConstInt extends Constant<int> {
 
 /// A constant [double].
 class ConstDouble extends Constant<double> {
-  ConstDouble(double value):super(value);
+  ConstDouble(double value) : super(value);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstDouble(this);
@@ -62,7 +62,7 @@ class ConstDouble extends Constant<double> {
 
 /// A constant [String].
 class ConstString extends Constant<String> {
-  ConstString(String value):super(value);
+  ConstString(String value) : super(value);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstString(this);
@@ -73,7 +73,7 @@ class ConstString extends Constant<String> {
 
 /// A constant [bool].
 class ConstBool extends Constant<bool> {
-  ConstBool(bool value):super(value);
+  ConstBool(bool value) : super(value);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstBool(this);
@@ -84,7 +84,7 @@ class ConstBool extends Constant<bool> {
 
 /// The single value belonging to the [UnitType].
 class ConstUnit extends Constant<Null> {
-  ConstUnit():super(null);
+  ConstUnit() : super(null);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstUnit(this);
@@ -135,7 +135,6 @@ abstract class FunctionCall extends BullseyeValue {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunctionCall(this);
-
 }
 
 abstract class FunctionTarget {
@@ -147,7 +146,8 @@ class DirectTarget extends FunctionTarget {
 
   DirectTarget(this.target);
 
-  T accept<T>(FunctionTargetVisitor<T> visitor) => visitor.visitDirectTarget(this);
+  T accept<T>(FunctionTargetVisitor<T> visitor) =>
+      visitor.visitDirectTarget(this);
 }
 
 class IndirectTarget extends FunctionTarget {
@@ -155,7 +155,8 @@ class IndirectTarget extends FunctionTarget {
 
   IndirectTarget(this.target);
 
-  T accept<T>(FunctionTargetVisitor<T> visitor) => visitor.visitIndirectTarget(this);
+  T accept<T>(FunctionTargetVisitor<T> visitor) =>
+      visitor.visitIndirectTarget(this);
 }
 
 class PartialTarget extends FunctionTarget {
@@ -163,11 +164,13 @@ class PartialTarget extends FunctionTarget {
 
   PartialTarget(this.target);
 
-  T accept<T>(FunctionTargetVisitor<T> visitor) => visitor.visitPartialTarget(this);
+  T accept<T>(FunctionTargetVisitor<T> visitor) =>
+      visitor.visitPartialTarget(this);
 }
 
 class Constructor extends FunctionTarget {
-  T accept<T>(FunctionTargetVisitor<T> visitor) => visitor.visitConstructor(this);
+  T accept<T>(FunctionTargetVisitor<T> visitor) =>
+      visitor.visitConstructor(this);
 }
 
 class LetIn extends BullseyeValue {
