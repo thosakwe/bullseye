@@ -6,6 +6,8 @@ import 'package:code_builder/code_builder.dart' as dart;
 
 import 'context.dart';
 
+/// Will be deleted soon anyways.
+@deprecated
 class ValueCompiler
     implements
         ValueVisitor<dart.Expression>,
