@@ -7,13 +7,26 @@ import 'type.dart';
 import 'type_provider.dart';
 import 'value_visitor.dart';
 
+/// Represents either a constant value, or some operation which produces a value
+/// at runtime.
+///
+/// All values have an associated type. See [BullseyeType] for more information.
 abstract class BullseyeValue {
+  /// The constant value, if any, as a Dart runtime object.
   Object? get constantValue => null;
 
+  /// Since Dart does not have sum types at the time of this writing, the
+  /// visitor pattern is used. You can use a ValueVisitor to perform any sort of
+  /// computation over a value; in fact, the compiler extends ValueVisitor.
   T accept<T>(ValueVisitor<T> visitor);
+
+  /// Returns the value's static type.
+  /// A [TypeProvider] is necessary because some types are treated as
+  /// singletons.
   BullseyeType getType(TypeProvider typeProvider);
 
-  BullseyeValue? cast(BullseyeType to, TypeProvider typeProvider) =>
+  /// Shorthand for calling [BullseyeType.castValue].
+  BullseyeValue? cast(TypeProvider typeProvider, BullseyeType to) =>
       getType(typeProvider).castValue(this, to);
 }
 
