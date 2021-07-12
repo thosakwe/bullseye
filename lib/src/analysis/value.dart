@@ -21,6 +21,9 @@ abstract class BullseyeValue {
   /// computation over a value; in fact, the compiler extends ValueVisitor.
   T accept<T>(ValueVisitor<T> visitor);
 
+  /// See [accept].
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor);
+
   /// Returns the value's static type.
   /// A [TypeProvider] is necessary because some types are treated as
   /// singletons.
@@ -47,6 +50,10 @@ class ConstInt extends Constant<int> {
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstInt(this);
 
   @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitConstInt(ctx, this);
+
+  @override
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.intType;
 }
 
@@ -56,6 +63,10 @@ class ConstDouble extends Constant<double> {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstDouble(this);
+
+  @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitConstDouble(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.doubleType;
@@ -69,6 +80,10 @@ class ConstString extends Constant<String> {
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstString(this);
 
   @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitConstString(ctx, this);
+
+  @override
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.stringType;
 }
 
@@ -78,6 +93,10 @@ class ConstBool extends Constant<bool> {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstBool(this);
+
+  @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitConstBool(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.boolType;
@@ -91,6 +110,10 @@ class ConstUnit extends Constant<Null> {
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitConstUnit(this);
 
   @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitConstUnit(ctx, this);
+
+  @override
   BullseyeType getType(TypeProvider typeProvider) => typeProvider.unitType;
 }
 
@@ -102,6 +125,10 @@ class Tuple extends BullseyeValue {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitTuple(this);
+
+  @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitTuple(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) =>
@@ -127,6 +154,9 @@ class IfThen extends BullseyeValue {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitIfThen(this);
+  @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitIfThen(ctx, this);
 }
 
 /// A value obtained as the result of invoking some function with the provided
@@ -143,6 +173,9 @@ abstract class FunctionCall extends BullseyeValue {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunctionCall(this);
+  @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitFunctionCall(ctx, this);
 }
 
 /// Evaluates [body] in a new context (where [name] = [value]).
@@ -164,6 +197,9 @@ class LetIn extends BullseyeValue {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitLetIn(this);
+  @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitLetIn(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => body.getType(typeProvider);
@@ -174,6 +210,9 @@ class LetIn extends BullseyeValue {
 class BinaryOperation extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitBinaryOperation(this);
+  @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitBinaryOperation(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
@@ -184,6 +223,9 @@ class BinaryOperation extends BullseyeValue {
 class Await extends BullseyeValue {
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitAwait(this);
+  @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitAwait(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
@@ -232,6 +274,10 @@ class GetSymbol extends BullseyeValue {
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitGetSymbol(this);
+
+  @override
+  T acceptArg1<Ctx, T>(Ctx ctx, ValueVisitorArg1<Ctx, T> visitor) =>
+      visitor.visitGetSymbol(ctx, this);
 
   @override
   BullseyeType getType(TypeProvider typeProvider) => throw UnimplementedError();
