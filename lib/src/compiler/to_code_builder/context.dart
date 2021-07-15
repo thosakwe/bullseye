@@ -13,5 +13,5 @@ class BlockContext {
   BlockContext withMethod(dart.MethodBuilder method) =>
       BlockContext(block, method, false);
 
-  BlockContent withReturnAllowed() => BlockContext(block, method, true);
+  BlockContext withReturnAllowed() => BlockContext(block, method, true);
 }
